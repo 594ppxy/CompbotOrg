@@ -1,0 +1,87 @@
+========================================================================
+CompbotOrg — v0.1 Organization Core demo
+========================================================================
+
+[1] Organization created: Acme AI (org-acme-ai)
+    Built-in roles: CEO@L0, CTO@L1, COO@L1, Director@L2, Manager@L3, Engineer@L4, Researcher@L4, Designer@L4, Analyst@L4
+
+[2] Departments: Executive / Engineering / Research / Marketing / AI Lab
+
+[3] Leadership: Ada (CEO) → Linus (CTO) + Grace (COO)
+[4] Directors: Margaret (Engineering), Demis (AI Lab), Sheryl (Marketing)
+[5] Contributors hired: Ken, Barbara, Alan, Yann, Brian
+
+[6] Organization tree
+────────────────────────────────────────────────────────────────────────
+Ada — CEO @ Executive
+├─ Linus — CTO @ Engineering
+│  ├─ Margaret — Director @ Engineering
+│  │  ├─ Ken — Engineer @ Engineering
+│  │  └─ Barbara — Engineer @ Engineering
+│  └─ Demis — Director @ AI Lab
+│     ├─ Alan — Researcher @ Research
+│     └─ Yann — Engineer @ AI Lab
+└─ Grace — COO @ Executive
+   └─ Sheryl — Director @ Marketing
+      └─ Brian — Analyst @ Marketing
+
+[7] Stats
+────────────────────────────────────────────────────────────────────────
+    departments : 5
+    members     : 11 (active 11)
+    depth       : 4 levels
+    leaf bots   : 5
+
+[8] Reporting line for Alan (Researcher)
+────────────────────────────────────────────────────────────────────────
+    Demis(director) → Linus(cto) → Ada(ceo)
+
+[9] Authority checks
+────────────────────────────────────────────────────────────────────────
+    ✓ CEO → Researcher (org-wide scope)
+    ✓ CTO → Backend Engineer (org-wide scope)
+    ✓ AI Lab Director → Researcher (own subtree)
+    ✗ Engineering Director → Researcher (other subtree)
+        ↳ target is not in the actor's reporting subtree
+    ✗ Researcher → Backend Engineer (same rank)
+        ↳ rank 4 cannot manage rank 4; management requires a strictly senior rank
+
+[10] Permission checks
+────────────────────────────────────────────────────────────────────────
+    org.delete         → Ada
+    dept.create        → Ada, Linus, Grace, Margaret, Demis, Sheryl
+    task.assign        → Ada, Linus, Grace, Margaret, Demis, Sheryl
+    report.approve     → Ada, Linus, Grace, Margaret, Demis, Sheryl
+    artifact.write     → Ada, Linus, Grace, Margaret, Demis, Sheryl, Ken, Barbara, Alan, Yann, Brian
+
+[11] Promote Alan from Researcher to Manager
+────────────────────────────────────────────────────────────────────────
+    rank 4 (researcher) → 3 (manager)
+    permissions 16 → 24
+    Alan may now approve reports: true
+
+[12] Transfer Barbara from Engineering to AI Lab
+────────────────────────────────────────────────────────────────────────
+    Barbara now sits in AI Lab
+
+[13] Guard rail — try to make the CEO report to a contributor
+────────────────────────────────────────────────────────────────────────
+    rejected: bot "bot-ada" cannot report to its own descendant "bot-ken"
+
+[14] Guard rail — a contributor tries to delete the organization
+────────────────────────────────────────────────────────────────────────
+    rejected: actor "bot-ken" lacks permission "org.update"
+
+[15] Event log
+────────────────────────────────────────────────────────────────────────
+    20 durable events recorded
+    department/created           5
+    member/joined                11
+    member/promoted              1
+    member/transferred           1
+    organization/ceo-designated  1
+    organization/created         1
+
+========================================================================
+Demo complete. The same log replays into an identical organization.
+========================================================================
