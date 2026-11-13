@@ -8,7 +8,7 @@
 
 **当前版本：v1.0 — 初步可用的产品形态**（用户只给目标，组织自己完成工作）
 
-> 12 个 workspace 包 / 9 条独立事件日志 / 275 个测试 / `pnpm verify` 一键全绿。
+> 12 个 workspace 包 / 9 条独立事件日志 / 276 个测试 / `pnpm verify` 一键全绿。
 
 ---
 
@@ -136,7 +136,8 @@ pnpm demo:product   # 端到端 Demo：两个目标、策略拒绝、持久化�
 pnpm cli init --name "Acme AI"
 pnpm cli goal run "Research competitor pricing" --subtask "Collect" --subtask "Write"
 pnpm cli stats
-pnpm serve          # HTTP API，默认 http://localhost:3000
+pnpm serve          # Web 控制台 + HTTP API，默认 http://localhost:3000
+# 浏览器打开 http://localhost:3000 查看组织仪表盘、下达目标、浏览九条事件日志
 curl -X POST localhost:3000/goals -H 'content-type: application/json' -d '{"title":"..."}'
 ```
 
@@ -148,7 +149,7 @@ curl -X POST localhost:3000/goals -H 'content-type: application/json' -d '{"titl
 
 ```bash
 pnpm install
-pnpm verify          # 全量类型检查 + 275 个测试 + 三个 demo 冒烟
+pnpm verify          # 全量类型检查 + 276 个测试 + 三个 demo 冒烟
 pnpm demo            # 打印一家完整 AI 公司的组织结构
 pnpm demo:protocol   # 跑通 v0.2 组织协议闭环
 pnpm demo:product    # v1.0 端到端：目标 → 执行 → 产物 → 审批 → 持久化
@@ -232,7 +233,7 @@ compbotorg/
 │   ├── registry/              # v0.8 能力市场（13 测试）
 │   ├── goal/                  # v0.9 目标分解与绩效（13 测试）
 │   ├── company/               # v1.0 组合根与 JSON 持久化（9 测试）
-│   ├── api/                   # v1.0 HTTP REST（6 测试）
+│   ├── api/                   # v1.0 HTTP REST + 内嵌 Web 控制台（7 测试）
 │   └── cli/                   # v1.0 命令行（8 测试）
 │       # 每个领域包均为 src/{brand,errors,events,types,projection,store,service,index}.ts + tests/
 ├── examples/

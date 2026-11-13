@@ -105,4 +105,25 @@ describe('createServer', () => {
       await new Promise<void>(resolve => server.close(() => resolve()))
     }
   })
+
+  it('serves the web console at / and /index.html', async () => {
+    const company = newCompany()
+    const server = createServer(company)
+    await new Promise<void>(resolve => server.listen(0, () => resolve()))
+    try {
+      const address = server.address()
+      if (address === null || typeof address === 'string') throw new Error('no port')
+      const base = `http://127.0.0.1:${address.port}`
+      const response = await fetch(`${base}/`)
+      expect(response.status).toBe(200)
+      expect(response.headers.get('content-type')).toContain('text/html')
+      const html = await response.text()
+      expect(html).toContain('CompbotOrg')
+      expect(html).toContain('目标运行器')
+      expect(await (await fetch(`${base}/index.html`)).status).toBe(200)
+      expect(await (await fetch(`${base}/nope`)).status).toBe(404)
+    } finally {
+      await new Promise<void>(resolve => server.close(() => resolve()))
+    }
+  })
 })

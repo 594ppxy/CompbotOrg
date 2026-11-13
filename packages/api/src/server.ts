@@ -11,6 +11,7 @@
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import { createServer as createHttpServer } from 'node:http'
 import type { Company } from '@compbotorg/company'
+import { WEB_CONSOLE_HTML } from './web'
 
 /** One transport-independent request. */
 export interface ApiRequest {
@@ -167,8 +168,23 @@ function writeJson(res: ServerResponse, response: ApiResponse): void {
   res.end(payload)
 }
 
+/** Write the self-contained web console. */
+function writeHtml(res: ServerResponse, html: string): void {
+  const payload = Buffer.from(html, 'utf8')
+  res.writeHead(200, {
+    'content-type': 'text/html; charset=utf-8',
+    'content-length': payload.byteLength,
+    'cache-control': 'no-store',
+  })
+  res.end(payload)
+}
+
 /**
  * Create an HTTP server for one Company.
+ *
+ * `GET /` and `GET /index.html` serve the bundled web console; everything else
+ * goes through the pure `dispatch` router as JSON.
+ *
  * @param company - company to serve.
  * @param options - mutation hook and body size limit.
  * @returns an unstarted Node HTTP server.
@@ -178,15 +194,21 @@ export function createServer(company: Company, options: ApiServerOptions = {}): 
   return createHttpServer((req, res) => {
     void (async () => {
       try {
-        const body = req.method === 'POST' || req.method === 'PUT'
+        const method = req.method ?? 'GET'
+        const pathname = new URL(req.url ?? '/', 'http://localhost').pathname
+        if (method === 'GET' && (pathname === '/' || pathname === '/index.html')) {
+          writeHtml(res, WEB_CONSOLE_HTML)
+          return
+        }
+        const body = method === 'POST' || method === 'PUT'
           ? await readBody(req, maxBytes)
           : undefined
         const response = await dispatch(company, {
-          method: req.method ?? 'GET',
+          method,
           path: req.url ?? '/',
           ...(body === undefined ? {} : { body }),
         })
-        if (req.method === 'POST' && response.status < 400) options.onMutate?.()
+        if (method === 'POST' && response.status < 400) options.onMutate?.()
         writeJson(res, response)
       } catch (cause: unknown) {
         const message = cause instanceof Error ? cause.message : String(cause)

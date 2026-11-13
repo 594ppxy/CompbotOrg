@@ -15,3 +15,4 @@ export {
   type ApiResponse,
   type ApiServerOptions,
 } from './server'
+export { WEB_CONSOLE_HTML } from './web'

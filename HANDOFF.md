@@ -45,11 +45,11 @@ v0.1 → v0.9 的十个领域包全部落地，v1.0 交付组合根 `company`、
 | 检查 | 结果 |
 |------|------|
 | TypeScript 编译（strict + exactOptionalPropertyTypes + noUncheckedIndexedAccess） | ✅ 12 个包全量 `tsc -b --force` 0 错误 |
-| 单元测试（vitest） | ✅ **275/275** 通过（12 个测试文件） |
+| 单元测试（vitest） | ✅ **276/276** 通过（12 个测试文件） |
 | `pnpm demo` / `pnpm demo:protocol` | ✅ 均可运行 |
 | `pnpm demo:product` | ✅ 两个目标闭环 + 策略拒绝 + 62 事件持久化 + 重放一致 |
 | `pnpm cli ...` | ✅ init / stats / goal run / export 实测通过 |
-| `pnpm serve` + HTTP | ✅ `/health`、`/stats`、`POST /goals`、`/goals` 实测通过 |
+| `pnpm serve` + HTTP | ✅ Web 控制台 `/` + `/health`、`/stats`、`POST /goals`、`/goals` 实测通过 |
 | `pnpm verify` | ✅ 一键全绿（`all checks passed`） |
 
 ### 后续版本新增的包（本次完成）
@@ -64,7 +64,7 @@ v0.1 → v0.9 的十个领域包全部落地，v1.0 交付组合根 `company`、
 | **`registry`** | **v0.8** | 发布 / 安装 / 评分 / 下架 / 搜索 | 13 |
 | **`goal`** | **v0.9** | 目标分解、任务关联、绩效、状态机 | 13 |
 | **`company`** | **v1.0** | 组合根、`bootstrap()`、`runGoal()`、JSON 快照持久化 | 9 |
-| **`api`** | **v1.0** | 零外部依赖 HTTP REST | 6 |
+| **`api`** | **v1.0** | 零外部依赖 HTTP REST + 内嵌 Web 控制台（`web.ts`） | 7 |
 | **`cli`** | **v1.0** | 命令行 + JSON 状态文件 | 8 |
 
 实现签名以 [`docs/CONTRACT.md`](./docs/CONTRACT.md) 为准；该契约文件是 v0.3–v0.9 的规范，新包不得偏离。
@@ -104,7 +104,7 @@ v0.1 → v0.9 的十个领域包全部落地，v1.0 交付组合根 `company`、
 - **持久化是 JSON 快照**：`saveCompany` 把九条日志整体写入一个文件，非增量、非并发安全、无数据库；生产可换成 JSONL / Session 日志后端。
 - **单组织实例**：一个 `Company` 对应一家公司；多租户需要外层路由。
 - **九条日志仍无跨日志事务**：`runGoal` 按固定顺序调用各服务，任一中间步骤抛错会留下部分已提交事件；需要 Saga / Outbox 才能在分布式环境下保证原子性。
-- **无 UI / IM 接入**：只有 CLI 与 HTTP API，没有 Web 指挥中心或飞书/Slack 连接器。
+- **Web 控制台是轻量视图**：`api/src/web.ts` 提供只读仪表盘与一个「下达目标」入口（零外部资源、单文件 HTML），没有登录鉴权、实时推送或权限体系；飞书 / Slack 等 IM 连接器仍未接入。
 
 ---
 
@@ -123,7 +123,7 @@ compbotorg/
 │   ├── registry/       # v0.8 能力市场
 │   ├── goal/           # v0.9 目标分解 + 绩效
 │   ├── company/        # v1.0 组合根（company.ts / persistence.ts）
-│   ├── api/            # v1.0 HTTP REST（server.ts / main.ts）
+│   ├── api/            # v1.0 HTTP REST + Web 控制台（server.ts / web.ts / main.ts）
 │   └── cli/            # v1.0 命令行（cli.ts / main.ts）
 │       # 领域包统一：src/{brand,errors,events,types,projection,store,service,index}.ts
 │       #             tests/<name>.spec.ts + package.json + tsconfig.json
@@ -155,13 +155,13 @@ compbotorg/
 # 前置：Node >= 22.13，pnpm >= 10
 pnpm install
 pnpm build          # tsc -b 编译 12 个包
-pnpm test           # vitest run（275 个测试）
+pnpm test           # vitest run（276 个测试）
 pnpm verify         # tsc + test + 三个 demo 一键校验
 pnpm demo           # v0.1 组织结构
 pnpm demo:protocol  # v0.2 协议闭环
 pnpm demo:product   # v1.0 端到端产品闭环
 pnpm cli help       # CLI 命令列表
-pnpm serve          # HTTP API（PORT / COMPANY_FILE 环境变量可覆盖）
+pnpm serve          # Web 控制台 + HTTP API（PORT / COMPANY_FILE 环境变量可覆盖）
 ```
 
 > `vitest.config.ts` 把全部 12 个 workspace 包 alias 到源码，所以 `pnpm test` 不需要预先生成 dist。

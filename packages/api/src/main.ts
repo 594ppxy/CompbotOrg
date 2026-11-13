@@ -22,8 +22,8 @@ if (!exists) {
 }
 
 const server = createServer(company, { onMutate: () => saveCompany(company, file) })
-server.listen(port, () => {
-  console.log(`CompbotOrg API listening on http://localhost:${port}`)
+server.listen(port, '0.0.0.0', () => {
+  console.log(`CompbotOrg web console + API listening on http://0.0.0.0:${port}`)
   console.log(`State file: ${file}`)
-  console.log('Try: GET /health, GET /stats, POST /goals {"title":"..."}')
+  console.log('Try: GET / (web console), GET /health, GET /stats, POST /goals {"title":"..."}')
 })
