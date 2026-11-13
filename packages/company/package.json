@@ -1,0 +1,30 @@
+{
+  "name": "@compbotorg/company",
+  "version": "1.0.0",
+  "description": "Product facade composing all CompbotOrg domain services with JSON persistence",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@compbotorg/organization": "workspace:*",
+    "@compbotorg/task": "workspace:*",
+    "@compbotorg/runtime": "workspace:*",
+    "@compbotorg/artifact": "workspace:*",
+    "@compbotorg/memory": "workspace:*",
+    "@compbotorg/skill": "workspace:*",
+    "@compbotorg/policy": "workspace:*",
+    "@compbotorg/registry": "workspace:*",
+    "@compbotorg/goal": "workspace:*"
+  }
+}

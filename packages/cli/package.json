@@ -1,0 +1,22 @@
+{
+  "name": "@compbotorg/cli",
+  "version": "1.0.0",
+  "description": "Command line interface for CompbotOrg with JSON state persistence",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@compbotorg/company": "workspace:*"
+  }
+}

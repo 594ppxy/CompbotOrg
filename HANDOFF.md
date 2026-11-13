@@ -36,18 +36,38 @@
 
 ---
 
-## 2. 当前进度：v0.2 Organization Protocol ✅ 已完成
+## 2. 当前进度：v1.0 产品形态 ✅ 已完成
 
-v0.1 交付了组织领域核心，v0.2 在其上交付了**组织协议核心**；两者都完全独立于运行时/传输层/UI。
+v0.1 → v0.9 的十个领域包全部落地，v1.0 交付组合根 `company`、HTTP API、CLI 与端到端 Demo。
+**九个领域包各自持有独立的事件日志**，全部独立于运行时/传输层/UI；只有 `company` 知道如何把它们拼起来。
 
-### 已验证状态
+### 已验证状态（2026-11-13）
 | 检查 | 结果 |
 |------|------|
-| TypeScript 编译（strict + exactOptionalPropertyTypes） | ✅ 0 错误 |
-| 单元测试（vitest） | ✅ 124/124 通过（organization 48 + task 76） |
-| v0.1 Demo 可运行 | ✅ 输出 87 行，进程退出 0 |
-| v0.2 协议 Demo 可运行 | ✅ 完整闭环 + 越权拒绝 + 事件重放，进程退出 0 |
-| `pnpm verify` | ✅ 一键全绿 |
+| TypeScript 编译（strict + exactOptionalPropertyTypes + noUncheckedIndexedAccess） | ✅ 12 个包全量 `tsc -b --force` 0 错误 |
+| 单元测试（vitest） | ✅ **275/275** 通过（12 个测试文件） |
+| `pnpm demo` / `pnpm demo:protocol` | ✅ 均可运行 |
+| `pnpm demo:product` | ✅ 两个目标闭环 + 策略拒绝 + 62 事件持久化 + 重放一致 |
+| `pnpm cli ...` | ✅ init / stats / goal run / export 实测通过 |
+| `pnpm serve` + HTTP | ✅ `/health`、`/stats`、`POST /goals`、`/goals` 实测通过 |
+| `pnpm verify` | ✅ 一键全绿（`all checks passed`） |
+
+### 后续版本新增的包（本次完成）
+
+| 包 | 版本 | 职责 | 测试 |
+|------|------|------|------|
+| `runtime` | v0.3 | `BotRuntime` 端口、确定性 `SimulatedRuntime`、执行日志、`AgentRunner` | 28 |
+| `artifact` | v0.4 | 版本化产物、共享/撤销、归档 | 16 |
+| `memory` | v0.5 | 三层记忆 + Markdown 导入导出 | 19 |
+| `skill` | v0.6 | Skill / Connector 注册安装、风险门槛 | 21 |
+| **`policy`** | **v0.7** | 优先级 + 通配匹配、审批请求、审计日志 | 18 |
+| **`registry`** | **v0.8** | 发布 / 安装 / 评分 / 下架 / 搜索 | 13 |
+| **`goal`** | **v0.9** | 目标分解、任务关联、绩效、状态机 | 13 |
+| **`company`** | **v1.0** | 组合根、`bootstrap()`、`runGoal()`、JSON 快照持久化 | 9 |
+| **`api`** | **v1.0** | 零外部依赖 HTTP REST | 6 |
+| **`cli`** | **v1.0** | 命令行 + JSON 状态文件 | 8 |
+
+实现签名以 [`docs/CONTRACT.md`](./docs/CONTRACT.md) 为准；该契约文件是 v0.3–v0.9 的规范，新包不得偏离。
 
 ### 已交付能力
 - **Organization**：创建组织、命名、描述、指定最高负责人（CEO）
@@ -79,10 +99,12 @@ v0.1 交付了组织领域核心，v0.2 在其上交付了**组织协议核心**
 6. **终态检查先于归属检查**：已取消/已完成的任务先报 `TASK_INVALID_TRANSITION`，再检查是否有人负责（沿用决策 3 的「结构约束优先」）。
 7. **升级链 = 汇报线 ∩ 管理权**：默认沿 `managerOf` 找第一个能管理原负责人的上级；显式目标也必须同时满足「在汇报线上」和「能管理原负责人」，否则拒绝。
 
-### 已知限制（截至 v0.2，刻意留白）
-- 内存存储，不持久化；单组织实例；无并发控制；无批量操作。
-- 没有 HTTP API / CLI；没有 Bot 实际执行引擎对接；没有记忆 / Artifact / Policy / Registry。
-- Task 与 Organization 是两个独立事件日志，尚未做跨日志的一致性事务（v1.0 串联时处理）。
+### 已知限制（截至 v1.0，刻意留白）
+- **执行引擎是模拟的**：`SimulatedRuntime` 确定性产出，不调用真实 LLM / DSH Agent Loop。替换它只需实现 `BotRuntime.execute(request)`，组织事件一行都不用改。
+- **持久化是 JSON 快照**：`saveCompany` 把九条日志整体写入一个文件，非增量、非并发安全、无数据库；生产可换成 JSONL / Session 日志后端。
+- **单组织实例**：一个 `Company` 对应一家公司；多租户需要外层路由。
+- **九条日志仍无跨日志事务**：`runGoal` 按固定顺序调用各服务，任一中间步骤抛错会留下部分已提交事件；需要 Saga / Outbox 才能在分布式环境下保证原子性。
+- **无 UI / IM 接入**：只有 CLI 与 HTTP API，没有 Web 指挥中心或飞书/Slack 连接器。
 
 ---
 
@@ -91,50 +113,38 @@ v0.1 交付了组织领域核心，v0.2 在其上交付了**组织协议核心**
 ```
 compbotorg/
 ├── packages/
-│   ├── organization/          # ★ v0.1 组织领域核心（已完成）
-│   │   ├── src/
-│   │   │   ├── brand.ts        # Branded ID 类型（防串用）
-│   │   │   ├── roles.ts        # 角色、权限词汇、权威范围
-│   │   │   ├── types.ts        # 状态快照类型
-│   │   │   ├── events.ts       # 14 种领域事件
-│   │   │   ├── errors.ts       # 稳定错误码
-│   │   │   ├── projection.ts   # 事件折叠（纯函数）
-│   │   │   ├── hierarchy.ts    # 组织树与权限推导
-│   │   │   ├── store.ts        # 事件存储抽象 + 内存实现
-│   │   │   ├── service.ts      # 命令服务（20 命令 + 20 查询）
-│   │   │   └── index.ts        # 对外导出
-│   │   └── tests/
-│   │       └── organization.spec.ts   # 48 个测试
-│   └── task/                  # ★ v0.2 组织协议核心（已完成）
-│       ├── src/
-│       │   ├── brand.ts        # 5 种协议 ID（防串用）
-│       │   ├── events.ts       # 18 种领域事件
-│       │   ├── errors.ts       # 稳定错误码
-│       │   ├── types.ts        # 状态快照类型
-│       │   ├── projection.ts   # 事件折叠 + 统计（纯函数）
-│       │   ├── store.ts        # 事件存储抽象 + 内存实现
-│       │   ├── bus.ts          # EventBus（pub/sub）
-│       │   ├── authorizer.ts   # Authorizer 端口 + v0.1 适配器
-│       │   ├── service.ts      # 命令服务（18 命令 + 查询）
-│       │   └── index.ts        # 对外导出
-│       └── tests/
-│           └── task.spec.ts           # 76 个测试
+│   ├── organization/   # v0.1 组织领域核心
+│   ├── task/           # v0.2 组织协议核心
+│   ├── runtime/        # v0.3 执行引擎 + AgentRunner
+│   ├── artifact/       # v0.4 Artifact FS
+│   ├── memory/         # v0.5 三层记忆
+│   ├── skill/          # v0.6 Skill / Connector
+│   ├── policy/         # v0.7 策略引擎 + 审计
+│   ├── registry/       # v0.8 能力市场
+│   ├── goal/           # v0.9 目标分解 + 绩效
+│   ├── company/        # v1.0 组合根（company.ts / persistence.ts）
+│   ├── api/            # v1.0 HTTP REST（server.ts / main.ts）
+│   └── cli/            # v1.0 命令行（cli.ts / main.ts）
+│       # 领域包统一：src/{brand,errors,events,types,projection,store,service,index}.ts
+│       #             tests/<name>.spec.ts + package.json + tsconfig.json
 ├── examples/
-│   ├── demo-company/          # v0.1 组织结构 demo
-│   └── demo-protocol/         # v0.2 协议闭环 demo
+│   ├── demo-company/          # v0.1 组织结构
+│   ├── demo-protocol/         # v0.2 协议闭环
+│   └── demo-product/          # v1.0 端到端产品闭环
 ├── docs/
-│   ├── architecture.md        # 架构说明
-│   ├── demo-output.txt        # v0.1 demo 实际输出
-│   ├── demo-protocol-output.txt # v0.2 协议 demo 实际输出
+│   ├── CONTRACT.md            # ★ 领域包统一签名契约（实现新包前必读）
+│   ├── architecture.md
+│   ├── demo-output.txt
+│   ├── demo-protocol-output.txt
 │   └── 项目总计划.md          # v0.1→v1.0 完整设计
 ├── README.md
 ├── HANDOFF.md                 # 本文件
 ├── LICENSE                    # MIT
-├── THIRD_PARTY_NOTICES.md     # 上游许可证声明
-├── package.json               # 根（pnpm workspace）
+├── THIRD_PARTY_NOTICES.md
+├── package.json               # 根（pnpm workspace + verify 脚本）
 ├── pnpm-workspace.yaml
-├── tsconfig.json
-└── vitest.config.ts
+├── tsconfig.json              # 12 个包全部登记在 references
+└── vitest.config.ts           # 12 个包全部登记在 alias
 ```
 
 ---
@@ -144,14 +154,18 @@ compbotorg/
 ```bash
 # 前置：Node >= 22.13，pnpm >= 10
 pnpm install
-pnpm build        # tsc -b 编译所有包
-pnpm test         # vitest run（124 个测试）
-pnpm demo         # 打印一家完整 AI 公司的组织结构
-pnpm demo:protocol# 跑通 v0.2 组织协议闭环
-pnpm verify       # tsc + test + 两个 demo 一键校验
+pnpm build          # tsc -b 编译 12 个包
+pnpm test           # vitest run（275 个测试）
+pnpm verify         # tsc + test + 三个 demo 一键校验
+pnpm demo           # v0.1 组织结构
+pnpm demo:protocol  # v0.2 协议闭环
+pnpm demo:product   # v1.0 端到端产品闭环
+pnpm cli help       # CLI 命令列表
+pnpm serve          # HTTP API（PORT / COMPANY_FILE 环境变量可覆盖）
 ```
 
-> `vitest.config.ts` 把两个 workspace 包 alias 到源码，所以 `pnpm test` 不需要预先 `tsc -b` 生成 dist。
+> `vitest.config.ts` 把全部 12 个 workspace 包 alias 到源码，所以 `pnpm test` 不需要预先生成 dist。
+> `data/company.json` 是 demo / CLI / API 共用的状态文件，已在 `.gitignore` 中忽略，可随时删除重建。
 
 代码用法（v0.1 已有）：
 
@@ -199,9 +213,9 @@ org.canManage(BotId('ceo'), BotId('eng1'))   // true
 
 ---
 
-## 6. 路线图：v0.3 → v1.0（接手者任务清单）
+## 6. 路线图执行结果：v0.3 → v1.0
 
-下面的每一版都是一个**独立 npm 包**（参考 `packages/organization` / `packages/task` 的写法），保持「事件溯源 + 与运行时解耦」的同一套范式。每个包通过 `@compbotorg/organization` 复用组织/权限能力。
+下面的每一版都是一个**独立 npm 包**（参考 `packages/organization` / `packages/task` 的写法），保持「事件溯源 + 与运行时解耦」的同一套范式。每个包只通过 `@compbotorg/organization` 借用 Bot 身份类型，跨包关联统一用 `string`。**目前全部已完成并通过 `pnpm verify`。**
 
 ### v0.2 Organization Protocol ✅【已完成，见 `packages/task`】
 - **已交付**：18 种领域事件、18 个命令、纯函数折叠、`restoreTask` 重放、76 个测试、`pnpm demo:protocol` 端到端闭环。
@@ -210,40 +224,32 @@ org.canManage(BotId('ceo'), BotId('eng1'))   // true
 - **验收已通过**：建任务 → 派给下属 → 向下委派 → 完成 → 提交报告 → 上级审批 → 决策 → 审批 → 阻塞升级（沿汇报线）→ 事件重放一致；越权派活被拒绝。
 - 事件清单：`task/created|assigned|delegated|claimed|started|blocked|unblocked|completed|cancelled|escalated`、`report/submitted|approved|rejected`、`decision/requested|made`、`approval/requested|granted|denied`。
 
-### v0.3 DSH / Tobs Runtime 适配层 ★【下一步，最优先】
-- **新建包** `packages/runtime`
-- 把 `OrganizationService` 的 Bot 注册为 DSH 的 Agent；把 Task 执行映射为 DSH 的 agent-loop 调用；Bot 间通信通过 Task 委派而非消息。
-- 复用 Tobs 的 PersonaBot 身份、SOUL/MEMORY 机制。
+### v0.3 → v0.9 ✅ 全部完成
 
-### v0.4 Artifact FS
-- **新建包** `packages/artifact`
-- Bot 通过 **Artifact**（而非共享文件夹）交换成果；版本控制、权限管控、组织/部门/Bot 三级命名空间。
-- 与 v0.2 的 `task/completed` 事件关联（`artifactRefs`）。
+十个领域包都已按 `docs/CONTRACT.md` 实现，每个包都有 `restoreX(events)`、闭集错误码、固定时钟测试与拒绝路径覆盖。实现要点：
 
-### v0.5 三层 Memory
-- **新建包** `packages/memory`
-- 组织级（使命/策略/知识库）、部门级（团队上下文）、Bot 级（个人经验）。基于事件溯源 + Markdown 文件（复用 Tobs 的 SOUL.md/MEMORY.md 思路）。
+- **v0.3 `runtime`**：`BotRuntime` 是可替换端口，内置确定性 `SimulatedRuntime`；`AgentRunner.runTask` 按 `startTask → execute → succeedExecution → completeTask → submitReport` 固定顺序编排，并通过 `artifactSink` 把产物交给 `Company` 归档。接真实 DSH / LLM 只需换掉 `runtime`，不动任何组织事件。
+- **v0.4 `artifact`**：`artifactRefs` 与 `task/completed` 关联；`Company` 的 sink 会把每次执行产物写成真实 Artifact。
+- **v0.5 `memory`**：三层 + Markdown；`Company.bootstrap` 写入组织使命，`runGoal` 追加目标记录。
+- **v0.6 `skill`**：`AgentRunner` 的 `skillsOf` 端口接到 `SkillService.skillsOf(botId)`，执行请求会带上该 Bot 已安装的技能名。
+- **v0.7 `policy`**：`runGoal` 先 `evaluate`，`deny` 时抛 `CompanyError('COMPANY_ACTION_DENIED')`，`requires_approval` 会留下 `pending` 审计；每次成功运行写一条 `allowed` 审计。
+- **v0.8 `registry`**：bootstrap 发布并安装一个专家技能，附一条评分；搜索只返回 published 条目。
+- **v0.9 `goal`**：`decompose → linkTask → recordMetric → completeGoal`，状态机拒绝终态再操作。
 
-### v0.6 Skill / Tool / Connector 协议
-- **新建包** `packages/skill`
-- Skill 注册与发现、Tool 清单、Connector 接口。Bot 可安装 Skill 获得专业能力，受组织策略管控。
+### v1.0 产品形态 ✅ 已完成
 
-### v0.7 Policy Engine / Sandbox / Audit
-- **新建包** `packages/policy`
-- 行为策略、高风险操作审批、沙箱隔离、审计日志。整合 v0.2 的 Approval + v0.1 的权限体系。
+- **`packages/company`**：组合根。`bootstrap()` 建组织/汇报线并播种各领域服务；`runGoal()` 一句话跑完整个闭环；`toSnapshot()` / `fromSnapshot()` / `saveCompany()` / `loadCompany()` 把九条事件日志原样持久化。
+- **`packages/api`**：零外部依赖 HTTP REST，`dispatch()` 与传输解耦便于测试，`createServer()` 适配 `node:http`，写请求后自动保存。
+- **`packages/cli`**：`init` / `stats` / 各领域查询 / `goal run` / `export`，状态存 JSON 文件。
+- **`examples/demo-product`**：两个目标闭环 + 策略拒绝 + 持久化 + 重放一致性 + 仪表盘。
 
-### v0.8 Registry / Marketplace
-- **新建包** `packages/registry`
-- Skill/Tool/Connector 注册表与市场：社区贡献、版本管理、安装/卸载。
+### 剩余可选工作（不阻塞 v1.0）
 
-### v0.9 目标分解 / 自主调度 / 绩效评估
-- **新建包** `packages/goal`
-- Goal → Task 自动分解、Bot 自主认领与调度、绩效指标。用户只给目标，组织自运行。
-
-### v1.0 产品形态（初步可用）
-- **新建包** `packages/cli` + `packages/api`
-- CLI（`org create` / `member add` / `task assign` …）、HTTP API（RESTful）、JSON 文件持久化、端到端 Demo（建组织→派任务→Bot 执行→产出 Artifact→审批→完成）。
-- 把前面所有包串起来，做到「用户只给目标，组织自运行」的初步闭环。
+1. 接真实 DSH Agent Loop / LLM Runtime（实现 `BotRuntime` 即可）。
+2. 把 JSON 快照换成增量 JSONL / 数据库后端；为 `runGoal` 加 Saga / Outbox 保证跨日志原子性。
+3. 多租户、并发控制、批量操作。
+4. Web 指挥中心与 IM 连接器（飞书 / Slack）。
+5. 跨日志一致性事务（第 2 节「已知限制」里刻意留白的那条）。
 
 ---
 
@@ -267,7 +273,7 @@ org.canManage(BotId('ceo'), BotId('eng1'))   // true
 2. **权限校验永远走 `Authorizer.canManage` / `can`**，不要在业务代码里重新算 rank；新包也建议注入同一端口而非直接依赖 `OrganizationService`。
 3. **新增事件类型时，同步更新** `events.ts` 的联合类型 + `projection.ts` 的 `applyEvent` switch + 测试。漏一个就编译不过，这是好事。
 4. **别急着接 DSH/Tobs 源码**：`packages/task` 已经示范了「纯 TS + 内存存储 + 完整测试」的标准做法，按同样范式继续做 artifact / memory / skill / policy，最后再用 `packages/runtime` 接真实执行引擎。
-5. **新包记得登记三处**：根 `tsconfig.json` 的 references、根 `package.json` 的 verify（若有 demo）、`vitest.config.ts` 的 alias（若测试跨包 import）。
+5. **新包记得登记三处**：根 `tsconfig.json` 的 references、根 `package.json` 的 verify（若有 demo）、`vitest.config.ts` 的 alias（若测试跨包 import）。当前 12 个包在三处均已登记，新增包时照做即可。
 6. **改名已定稿为 CompbotOrg**，仓库、scope、文档都已统一。除非有强理由，不要再动名字——全局替换和重新发布成本很高。
 
 ---

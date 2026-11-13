@@ -6,7 +6,9 @@
 >
 > 名字里的 **Open** 不在标签上，而在骨子里：MIT 许可证、开放协议、可被社区的 Runtime 替换。
 
-**当前版本：v0.2 — Organization Protocol**（组织开始「动」起来）
+**当前版本：v1.0 — 初步可用的产品形态**（用户只给目标，组织自己完成工作）
+
+> 12 个 workspace 包 / 9 条独立事件日志 / 275 个测试 / `pnpm verify` 一键全绿。
 
 ---
 
@@ -96,13 +98,60 @@ tasks.approveReport(report.id, 'LGTM', { actorId: director })
 
 ---
 
+## v0.3 → v1.0 已经实现什么
+
+后续的每一版都是一个独立 npm 包，统一遵守 [`docs/CONTRACT.md`](./docs/CONTRACT.md) 的签名规范：事件溯源、Branded ID、闭集错误码、纯函数折叠、`restoreX(events)` 重放、固定时钟测试。
+
+| 包 | 版本 | 能力 |
+|------|------|------|
+| `runtime` | v0.3 | `BotRuntime` 端口、确定性 `SimulatedRuntime`、`ExecutionService` 执行日志、`AgentRunner` 编排 start → execute → complete → report |
+| `artifact` | v0.4 | 版本化产物、共享/撤销、归档、命名空间与访问控制 |
+| `memory` | v0.5 | 组织 / 部门 / Bot 三层记忆，Markdown 导入导出与搜索 |
+| `skill` | v0.6 | Skill 注册与安装、Connector、启停、高风险安装门槛 |
+| **`policy`** | **v0.7** | 策略优先级匹配与通配、`allow`/`deny`/`requires_approval`、审批请求与审计日志 |
+| **`registry`** | **v0.8** | 能力发布 / 安装 / 评分 / 下架 / 搜索，评分均值与 marketplace 统计 |
+| **`goal`** | **v0.9** | 目标分解、任务关联、绩效指标、完成 / 取消状态机 |
+| **`company`** | **v1.0** | 组合根：串联九个服务、`bootstrap()`、`runGoal()` 自主闭环、`toSnapshot()` / `fromSnapshot()` / JSON 文件持久化 |
+| **`api`** | **v1.0** | 零外部依赖 HTTP REST 层（`/stats`、`/state`、各领域视图、`POST /goals`） |
+| **`cli`** | **v1.0** | `init` / `stats` / 各领域查询 / `goal run` / `export`，状态存于 JSON 文件 |
+
+### 产品用法
+
+```ts
+import { Company, saveCompany } from '@compbotorg/company'
+
+const company = new Company()
+company.bootstrap()                                  // 建组织、汇报线、技能、策略、市场、记忆
+const result = await company.runGoal({                // 用户只给目标
+  title: 'Research competitor pricing',
+  subtasks: [{ title: 'Collect prices' }, { title: 'Write report' }],
+})
+// 组织自动完成：分解 → 派活 → Bot 执行 → 归档 Artifact → 上级审批 → 策略评估 → 绩效 → 结项
+console.log(result.goal.status, result.artifacts.length)
+saveCompany(company, 'data/company.json')             // 九条事件日志落盘
+```
+
+```bash
+pnpm demo:product   # 端到端 Demo：两个目标、策略拒绝、持久化与重放一致性
+pnpm cli init --name "Acme AI"
+pnpm cli goal run "Research competitor pricing" --subtask "Collect" --subtask "Write"
+pnpm cli stats
+pnpm serve          # HTTP API，默认 http://localhost:3000
+curl -X POST localhost:3000/goals -H 'content-type: application/json' -d '{"title":"..."}'
+```
+
+`Company` 的持久化是「九条事件日志原样序列化」：恢复时用各包自己的 `restoreX` 重建，领域层不需要知道文件、HTTP 或 CLI 的存在。
+
+---
+
 ## 快速开始
 
 ```bash
 pnpm install
-pnpm verify          # 类型检查 + 124 个测试 + 两个 demo 冒烟
+pnpm verify          # 全量类型检查 + 275 个测试 + 三个 demo 冒烟
 pnpm demo            # 打印一家完整 AI 公司的组织结构
 pnpm demo:protocol   # 跑通 v0.2 组织协议闭环
+pnpm demo:product    # v1.0 端到端：目标 → 执行 → 产物 → 审批 → 持久化
 ```
 
 `pnpm demo` 的输出：
@@ -173,25 +222,25 @@ org.can(engineer, 'dept.create') // false
 ```text
 compbotorg/
 ├── packages/
-│   ├── organization/          # ★ v0.1 组织领域核心（48 个测试）
-│   └── task/                  # ★ v0.2 组织协议核心（76 个测试）
-│       ├── src/
-│       │   ├── brand.ts       # Task/Report/Decision/Approval/Escalation ID
-│       │   ├── events.ts      # 18 种领域事件
-│       │   ├── errors.ts      # 稳定错误码
-│       │   ├── types.ts       # 状态快照类型
-│       │   ├── projection.ts  # 纯函数折叠 + 统计
-│       │   ├── store.ts       # 事件存储抽象
-│       │   ├── bus.ts         # EventBus（pub/sub）
-│       │   ├── authorizer.ts  # Authorizer 端口 + v0.1 适配器
-│       │   ├── service.ts     # 18 个命令 + 查询
-│       │   └── index.ts
-│       └── tests/
-│           └── task.spec.ts
+│   ├── organization/          # v0.1 组织领域核心（48 测试）
+│   ├── task/                  # v0.2 组织协议核心（76 测试）
+│   ├── runtime/               # v0.3 执行引擎与 AgentRunner（28 测试）
+│   ├── artifact/              # v0.4 Artifact FS（16 测试）
+│   ├── memory/                # v0.5 三层记忆（19 测试）
+│   ├── skill/                 # v0.6 Skill / Connector（21 测试）
+│   ├── policy/                # v0.7 策略引擎与审计（18 测试）
+│   ├── registry/              # v0.8 能力市场（13 测试）
+│   ├── goal/                  # v0.9 目标分解与绩效（13 测试）
+│   ├── company/               # v1.0 组合根与 JSON 持久化（9 测试）
+│   ├── api/                   # v1.0 HTTP REST（6 测试）
+│   └── cli/                   # v1.0 命令行（8 测试）
+│       # 每个领域包均为 src/{brand,errors,events,types,projection,store,service,index}.ts + tests/
 ├── examples/
-│   ├── demo-company/          # v0.1 组织结构 demo
-│   └── demo-protocol/         # v0.2 协议闭环 demo
+│   ├── demo-company/          # v0.1 组织结构
+│   ├── demo-protocol/         # v0.2 协议闭环
+│   └── demo-product/          # v1.0 端到端产品闭环
 ├── docs/
+│   ├── CONTRACT.md            # ★ v0.3–v0.9 领域包统一签名契约
 │   ├── architecture.md
 │   ├── demo-output.txt
 │   └── 项目总计划.md          # v0.1→v1.0 完整设计
@@ -207,13 +256,16 @@ compbotorg/
 |------|------|------|
 | **v0.1** | Organization / Department / Role / Membership / Hierarchy | ✅ 已完成 |
 | **v0.2** | Organization Protocol：Task / Delegation / Report / Review / Decision / Approval / Escalation / Event Bus | ✅ 已完成 |
-| v0.3 | Runtime 集成：接入 DSH Agent Loop、Tobs PersonaBot、Browser/Computer | 下一步 |
-| v0.4 | Artifact FS：以 Artifact 为核心的文件系统、版本、权限共享 | 计划中 |
-| v0.5 | 三层 Memory：Organization / Department / Bot | 计划中 |
-| v0.6 | Skill Protocol：Expert Skill / Connector / Manifest | 计划中 |
-| v0.7 | Governance：Policy Engine / Approval Flow / Audit | 计划中 |
-| v0.8 | Skill Ecosystem：Registry / Marketplace | 计划中 |
-| v0.9 | Autonomous Organization：目标分解、自动委派、绩效评估 | 计划中 |
+| **v0.3** | Runtime：BotRuntime 端口、SimulatedRuntime、执行日志、AgentRunner | ✅ 已完成 |
+| **v0.4** | Artifact FS：版本、共享、归档、命名空间 | ✅ 已完成 |
+| **v0.5** | 三层 Memory：Organization / Department / Bot + Markdown | ✅ 已完成 |
+| **v0.6** | Skill Protocol：Expert Skill / Connector / 风险门槛 | ✅ 已完成 |
+| **v0.7** | Governance：Policy Engine / 审批请求 / 审计日志 | ✅ 已完成 |
+| **v0.8** | Skill Ecosystem：Registry / 评分 / 搜索 / 下架 | ✅ 已完成 |
+| **v0.9** | Autonomous Organization：目标分解、任务关联、绩效评估 | ✅ 已完成 |
+| **v1.0** | 产品形态：Company 门面、JSON 持久化、CLI、HTTP API、端到端 Demo | ✅ 已完成 |
+
+> 说明：v0.3 的 `BotRuntime` 是可替换端口，当前内置确定性 `SimulatedRuntime`；接真实 DSH Agent Loop 或 LLM 只需实现 `execute(request)`，无需改动任何组织事件。
 
 ---
 
