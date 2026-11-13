@@ -15,7 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "demo": "tsc -b && tsx examples/demo-company/main.ts",
-    "verify": "tsc -b --force && vitest run && tsx examples/demo-company/main.ts > /dev/null && echo 'all checks passed'"
+    "demo:protocol": "tsc -b && tsx examples/demo-protocol/main.ts",
+    "verify": "tsc -b --force && vitest run && tsx examples/demo-company/main.ts > /dev/null && tsx examples/demo-protocol/main.ts > /dev/null && echo 'all checks passed'"
   },
   "devDependencies": {
     "@types/node": "^22.13.0",

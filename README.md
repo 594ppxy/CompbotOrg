@@ -6,7 +6,7 @@
 >
 > 名字里的 **Open** 不在标签上，而在骨子里：MIT 许可证、开放协议、可被社区的 Runtime 替换。
 
-**当前版本：v0.1 — Organization Core**
+**当前版本：v0.2 — Organization Protocol**（组织开始「动」起来）
 
 ---
 
@@ -67,12 +67,42 @@ CompbotOrg 不是一个多 Agent 聊天框架，也不是 Agent Swarm。它要�
 
 ---
 
+## v0.2 已经实现什么
+
+`packages/task` 是组织协议核心，把 v0.1 的静态组织结构变成可运转的工作流，同样独立于运行时、传输层和 UI。
+
+| 能力 | 说明 |
+|------|------|
+| **Task** | 创建、指派、向下委派、认领、开始、阻塞/解阻、完成、取消；记录委派深度与产物引用 |
+| **Report** | 提交报告、上级审阅、批准/驳回（不允许自审） |
+| **Decision** | 请求决策、作出决策（自动定位 requester 的直属上级） |
+| **Approval** | 请求审批、批准/驳回；审批人必须能管理请求人 |
+| **Escalation** | 沿汇报线升级；显式目标必须在汇报线上且能管理原负责人 |
+| **Authorizer** | 注入式授权端口；`OrganizationAuthorizer` 直接复用 v0.1 的 `canManage`（rank × scope） |
+| **EventBus** | 每次 commit 同步发布领域事件，支持类型过滤、退订、错误隔离 |
+| **Event Sourcing** | 18 种领域事件、纯函数折叠、`restoreTask(events)` 完整重放 |
+
+```ts
+import { OrganizationAuthorizer, TaskService } from '@compbotorg/task'
+
+const tasks = new TaskService({ authorizer: new OrganizationAuthorizer(org) })
+const task = tasks.createTask({ title: 'Ship v0.2', createdBy: ceo }, { actorId: ceo })
+tasks.assignTask(task.id, engineer, { actorId: ceo })   // 不能管的人不能派活
+tasks.completeTask(task.id, { summary: 'done' }, { actorId: engineer })
+tasks.approveReport(report.id, 'LGTM', { actorId: director })
+```
+
+`pnpm demo:protocol` 会跑通完整闭环：建任务 → 向下委派 → 完成 → 提交报告 → 上级审批 → 决策 → 审批 → 阻塞升级 → 事件重放，并演示一次越权派活被拒绝。
+
+---
+
 ## 快速开始
 
 ```bash
 pnpm install
-pnpm verify    # 类型检查 + 48 个测试 + demo 冒烟
-pnpm demo      # 打印一家完整 AI 公司的组织结构
+pnpm verify          # 类型检查 + 124 个测试 + 两个 demo 冒烟
+pnpm demo            # 打印一家完整 AI 公司的组织结构
+pnpm demo:protocol   # 跑通 v0.2 组织协议闭环
 ```
 
 `pnpm demo` 的输出：
@@ -143,25 +173,30 @@ org.can(engineer, 'dept.create') // false
 ```text
 compbotorg/
 ├── packages/
-│   └── organization/          # ★ v0.1 组织领域核心
+│   ├── organization/          # ★ v0.1 组织领域核心（48 个测试）
+│   └── task/                  # ★ v0.2 组织协议核心（76 个测试）
 │       ├── src/
-│       │   ├── brand.ts       # 品牌化 ID 类型
-│       │   ├── roles.ts       # 角色、权限、权威范围
+│       │   ├── brand.ts       # Task/Report/Decision/Approval/Escalation ID
+│       │   ├── events.ts      # 18 种领域事件
+│       │   ├── errors.ts      # 稳定错误码
 │       │   ├── types.ts       # 状态快照类型
-│       │   ├── events.ts      # 14 种领域事件
-│       │   ├── errors.ts      # 稳定的错误码
-│       │   ├── projection.ts  # 事件折叠
-│       │   ├── hierarchy.ts   # 组织树与权限推导
+│       │   ├── projection.ts  # 纯函数折叠 + 统计
 │       │   ├── store.ts       # 事件存储抽象
-│       │   ├── service.ts     # 命令服务
+│       │   ├── bus.ts         # EventBus（pub/sub）
+│       │   ├── authorizer.ts  # Authorizer 端口 + v0.1 适配器
+│       │   ├── service.ts     # 18 个命令 + 查询
 │       │   └── index.ts
 │       └── tests/
-│           └── organization.spec.ts   # 48 个测试
+│           └── task.spec.ts
 ├── examples/
-│   └── demo-company/          # 可运行的组织 demo
+│   ├── demo-company/          # v0.1 组织结构 demo
+│   └── demo-protocol/         # v0.2 协议闭环 demo
 ├── docs/
-│   └── architecture.md        # 架构说明
-└── CompbotOrg_项目总计划_修订版.md
+│   ├── architecture.md
+│   ├── demo-output.txt
+│   └── 项目总计划.md          # v0.1→v1.0 完整设计
+├── HANDOFF.md                 # 接手文档
+└── README.md
 ```
 
 ---
@@ -171,8 +206,8 @@ compbotorg/
 | 版本 | 内容 | 状态 |
 |------|------|------|
 | **v0.1** | Organization / Department / Role / Membership / Hierarchy | ✅ 已完成 |
-| v0.2 | Organization Protocol：Task / Delegation / Report / Review / Decision / Escalation / Event Bus | 下一步 |
-| v0.3 | Runtime 集成：接入 DSH Agent Loop、Tobs PersonaBot、Browser/Computer | 计划中 |
+| **v0.2** | Organization Protocol：Task / Delegation / Report / Review / Decision / Approval / Escalation / Event Bus | ✅ 已完成 |
+| v0.3 | Runtime 集成：接入 DSH Agent Loop、Tobs PersonaBot、Browser/Computer | 下一步 |
 | v0.4 | Artifact FS：以 Artifact 为核心的文件系统、版本、权限共享 | 计划中 |
 | v0.5 | 三层 Memory：Organization / Department / Bot | 计划中 |
 | v0.6 | Skill Protocol：Expert Skill / Connector / Manifest | 计划中 |

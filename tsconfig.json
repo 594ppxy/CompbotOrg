@@ -21,5 +21,8 @@
     "resolveJsonModule": true
   },
   "include": [],
-  "references": [{ "path": "./packages/organization" }]
+  "references": [
+    { "path": "./packages/organization" },
+    { "path": "./packages/task" }
+  ]
 }

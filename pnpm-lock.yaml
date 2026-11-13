@@ -27,7 +27,22 @@ importers:
         specifier: workspace:*
         version: link:../../packages/organization
 
+  examples/demo-protocol:
+    dependencies:
+      '@compbotorg/organization':
+        specifier: workspace:*
+        version: link:../../packages/organization
+      '@compbotorg/task':
+        specifier: workspace:*
+        version: link:../../packages/task
+
   packages/organization: {}
+
+  packages/task:
+    dependencies:
+      '@compbotorg/organization':
+        specifier: workspace:*
+        version: link:../organization
 
 packages:
 

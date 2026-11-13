@@ -1,0 +1,10 @@
+{
+  "name": "@compbotorg/demo-protocol",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@compbotorg/organization": "workspace:*",
+    "@compbotorg/task": "workspace:*"
+  }
+}

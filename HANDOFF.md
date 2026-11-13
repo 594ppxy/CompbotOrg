@@ -36,16 +36,18 @@
 
 ---
 
-## 2. 当前进度：v0.1 Organization Core ✅ 已完成
+## 2. 当前进度：v0.2 Organization Protocol ✅ 已完成
 
-v0.1 交付了一个**完全独立于运行时/传输层/UI 的组织领域核心**。
+v0.1 交付了组织领域核心，v0.2 在其上交付了**组织协议核心**；两者都完全独立于运行时/传输层/UI。
 
 ### 已验证状态
 | 检查 | 结果 |
 |------|------|
 | TypeScript 编译（strict + exactOptionalPropertyTypes） | ✅ 0 错误 |
-| 单元测试（vitest） | ✅ 48/48 通过 |
-| Demo 可运行 | ✅ 输出 87 行，进程退出 0 |
+| 单元测试（vitest） | ✅ 124/124 通过（organization 48 + task 76） |
+| v0.1 Demo 可运行 | ✅ 输出 87 行，进程退出 0 |
+| v0.2 协议 Demo 可运行 | ✅ 完整闭环 + 越权拒绝 + 事件重放，进程退出 0 |
+| `pnpm verify` | ✅ 一键全绿 |
 
 ### 已交付能力
 - **Organization**：创建组织、命名、描述、指定最高负责人（CEO）
@@ -57,15 +59,30 @@ v0.1 交付了一个**完全独立于运行时/传输层/UI 的组织领域核�
 - **Permission**：角色默认权限 + 个人加授/剥夺
 - **Event Sourcing**：每条命令产生一个不可变事件，日志可完整重放（`restoreOrganization(events)`）
 
+### v0.2 新增交付（`packages/task`）
+
+- **Task**：创建/指派/向下委派/认领/开始/阻塞/解阻/完成/取消；记录委派深度、产物引用、报告列表。
+- **Report**：提交/批准/驳回，禁止自审，审阅人必须能管理作者（`canManage`）。
+- **Decision**：请求/作出，缺省由 requester 的直属上级裁定。
+- **Approval**：请求/批准/驳回，审批人必须能管理请求人。
+- **Escalation**：沿 `Authorizer.managerOf` 汇报线升级；显式目标必须在汇报线上且能管理原负责人。
+- **Authorizer 端口**：默认 `PermissiveAuthorizer`，生产注入 `OrganizationAuthorizer(org)` 直接复用 v0.1 的 rank × scope。
+- **EventBus**：每次 commit 同步发布 `LoggedEvent`，支持类型过滤、退订、监听器错误隔离。
+- **18 种领域事件 + 纯函数折叠 + `restoreTask(events)` 完整重放**。
+
 ### 关键设计决策（改之前先读，别推翻重来）
 1. **汇报线与部门归属正交**：Bot 可以属于 Research 部门但汇报给 AI Lab 负责人。
 2. **管理权 = rank × scope 同时满足**：只满足 rank 会「跨部门乱管」，只满足 scope 会「基层管全树」，必须两者相乘。
 3. **结构约束先于业务约束**：「不能成环」先于「上级必须更资深」检查，否则报错会令人困惑。
-4. **命令 → 校验 → append 一个事件 → fold**：事件日志是唯一真相源，保证可审计、可重放。
+4. **命令 → 校验 → append 一个事件 → fold → publish**：事件日志是唯一真相源；EventBus 只在 commit 成功后发布。
+5. **授权走注入端口，不自己算 rank**：`TaskService` 只问 `Authorizer.canManage/managerOf/isActive`；默认宽松便于独立运行，接上 `OrganizationAuthorizer` 后所有派活/委派/审阅/审批/升级自动服从 v0.1 的 rank × scope。
+6. **终态检查先于归属检查**：已取消/已完成的任务先报 `TASK_INVALID_TRANSITION`，再检查是否有人负责（沿用决策 3 的「结构约束优先」）。
+7. **升级链 = 汇报线 ∩ 管理权**：默认沿 `managerOf` 找第一个能管理原负责人的上级；显式目标也必须同时满足「在汇报线上」和「能管理原负责人」，否则拒绝。
 
-### 已知限制（v0.1 刻意留白，留给后续版本）
+### 已知限制（截至 v0.2，刻意留白）
 - 内存存储，不持久化；单组织实例；无并发控制；无批量操作。
-- 没有 HTTP API / CLI；没有 Bot 实际执行引擎对接；没有任务/审批/记忆/Artifact。
+- 没有 HTTP API / CLI；没有 Bot 实际执行引擎对接；没有记忆 / Artifact / Policy / Registry。
+- Task 与 Organization 是两个独立事件日志，尚未做跨日志的一致性事务（v1.0 串联时处理）。
 
 ---
 
@@ -74,25 +91,41 @@ v0.1 交付了一个**完全独立于运行时/传输层/UI 的组织领域核�
 ```
 compbotorg/
 ├── packages/
-│   └── organization/          # ★ v0.1 组织领域核心（已完成）
+│   ├── organization/          # ★ v0.1 组织领域核心（已完成）
+│   │   ├── src/
+│   │   │   ├── brand.ts        # Branded ID 类型（防串用）
+│   │   │   ├── roles.ts        # 角色、权限词汇、权威范围
+│   │   │   ├── types.ts        # 状态快照类型
+│   │   │   ├── events.ts       # 14 种领域事件
+│   │   │   ├── errors.ts       # 稳定错误码
+│   │   │   ├── projection.ts   # 事件折叠（纯函数）
+│   │   │   ├── hierarchy.ts    # 组织树与权限推导
+│   │   │   ├── store.ts        # 事件存储抽象 + 内存实现
+│   │   │   ├── service.ts      # 命令服务（20 命令 + 20 查询）
+│   │   │   └── index.ts        # 对外导出
+│   │   └── tests/
+│   │       └── organization.spec.ts   # 48 个测试
+│   └── task/                  # ★ v0.2 组织协议核心（已完成）
 │       ├── src/
-│       │   ├── brand.ts        # Branded ID 类型（防串用）
-│       │   ├── roles.ts        # 角色、权限词汇、权威范围
-│       │   ├── types.ts        # 状态快照类型
-│       │   ├── events.ts       # 14 种领域事件
+│       │   ├── brand.ts        # 5 种协议 ID（防串用）
+│       │   ├── events.ts       # 18 种领域事件
 │       │   ├── errors.ts       # 稳定错误码
-│       │   ├── projection.ts   # 事件折叠（纯函数）
-│       │   ├── hierarchy.ts    # 组织树与权限推导
+│       │   ├── types.ts        # 状态快照类型
+│       │   ├── projection.ts   # 事件折叠 + 统计（纯函数）
 │       │   ├── store.ts        # 事件存储抽象 + 内存实现
-│       │   ├── service.ts      # 命令服务（20 命令 + 20 查询）
+│       │   ├── bus.ts          # EventBus（pub/sub）
+│       │   ├── authorizer.ts   # Authorizer 端口 + v0.1 适配器
+│       │   ├── service.ts      # 命令服务（18 命令 + 查询）
 │       │   └── index.ts        # 对外导出
 │       └── tests/
-│           └── organization.spec.ts   # 48 个测试
+│           └── task.spec.ts           # 76 个测试
 ├── examples/
-│   └── demo-company/          # 可运行的组织 demo
+│   ├── demo-company/          # v0.1 组织结构 demo
+│   └── demo-protocol/         # v0.2 协议闭环 demo
 ├── docs/
 │   ├── architecture.md        # 架构说明
-│   ├── demo-output.txt        # demo 实际输出
+│   ├── demo-output.txt        # v0.1 demo 实际输出
+│   ├── demo-protocol-output.txt # v0.2 协议 demo 实际输出
 │   └── 项目总计划.md          # v0.1→v1.0 完整设计
 ├── README.md
 ├── HANDOFF.md                 # 本文件
@@ -111,11 +144,14 @@ compbotorg/
 ```bash
 # 前置：Node >= 22.13，pnpm >= 10
 pnpm install
-pnpm build      # tsc -b 编译所有包
-pnpm test       # vitest run（48 个测试）
-pnpm demo       # 打印一家完整 AI 公司的组织结构
-pnpm verify     # tsc + test + demo 一键校验
+pnpm build        # tsc -b 编译所有包
+pnpm test         # vitest run（124 个测试）
+pnpm demo         # 打印一家完整 AI 公司的组织结构
+pnpm demo:protocol# 跑通 v0.2 组织协议闭环
+pnpm verify       # tsc + test + 两个 demo 一键校验
 ```
+
+> `vitest.config.ts` 把两个 workspace 包 alias 到源码，所以 `pnpm test` 不需要预先 `tsc -b` 生成 dist。
 
 代码用法（v0.1 已有）：
 
@@ -151,24 +187,30 @@ org.canManage(BotId('ceo'), BotId('eng1'))   // true
 `member/joined|transferred|promoted|reports-to-changed|status-changed|left|permissions-changed`、
 `role/registered`。
 
+### v0.2 领域模型速览（`packages/task`）
+
+- **TaskSnapshot**：`pending → assigned → in_progress → blocked → completed / cancelled`；记录 `createdBy`、`assigneeId`、`assignedBy`、`delegationDepth`、`artifactRefs`、`reportIds`。
+- **ReportSnapshot**：`submitted → approved / rejected`，带审阅人与审阅意见。
+- **DecisionSnapshot**：`pending → made`，含 outcome（approved / rejected / deferred）与理由。
+- **ApprovalSnapshot**：`pending → granted / denied`，含指定审批人。
+- **EscalationSnapshot**：一次汇报线跳跃的不可变记录（raisedBy / fromBotId / escalatedTo / reason）。
+- **TaskState**：以上五类快照的五张 `ReadonlyMap`，由 18 种事件纯函数折叠而来。
+- **状态机约束**：终态（completed / cancelled）先于归属检查；审阅/审批不能自审自批；升级目标必须在汇报线上且能管理原负责人。
+
 ---
 
-## 6. 路线图：v0.2 → v1.0（接手者任务清单）
+## 6. 路线图：v0.3 → v1.0（接手者任务清单）
 
-下面的每一版都是一个**独立 npm 包**（参考 `packages/organization` 的写法），保持「事件溯源 + 与运行时解耦」的同一套范式。每个包通过 `@compbotorg/organization` 复用组织/权限能力。
+下面的每一版都是一个**独立 npm 包**（参考 `packages/organization` / `packages/task` 的写法），保持「事件溯源 + 与运行时解耦」的同一套范式。每个包通过 `@compbotorg/organization` 复用组织/权限能力。
 
-### v0.2 Organization Protocol ★【最优先，组织开始「动」起来】
-- **新建包** `packages/task`
-- **领域**：Task（创建/分配/委派/认领/开始/完成/取消/阻塞）、Report（提交/审阅/批准/驳回）、Decision（请求/作出）、Approval（请求/批准/驳回）、Escalation（升级）。
-- **关键接口草案**：
-  - `TaskId / ReportId / DecisionId / ApprovalId`（Branded，仿 `brand.ts`）
-  - `TaskCreatedEvent | TaskAssignedEvent | TaskDelegatedEvent | TaskEscalatedEvent | ReportSubmittedEvent | ReportApprovedEvent | ApprovalRequestedEvent | ...`（仿 `events.ts`）
-  - `TaskService`：命令 `createTask / assignTask / delegateTask / claimTask / startTask / completeTask / escalateTask / submitReport / approveReport / requestApproval / grantApproval` 等；每条命令 append 一个事件。
-  - **授权**：`TaskService` 构造时注入一个 `Authorizer` 接口（默认宽松，CLI 层把 `OrganizationService` 接进去），实现「不能管的人不能派活、不能向他升级」——直接复用 v0.1 的 `canManage`。
-  - **EventBus**：一个简单的 pub/sub（仿 DSH 的 Event Bus），`TaskService` 每次 commit 后发布领域事件，供 Runtime / CLI 订阅。
-- **验收**：能建任务→派给下属→下属完成→提交报告→上级审批；升级链正确；事件可重放。
+### v0.2 Organization Protocol ✅【已完成，见 `packages/task`】
+- **已交付**：18 种领域事件、18 个命令、纯函数折叠、`restoreTask` 重放、76 个测试、`pnpm demo:protocol` 端到端闭环。
+- **授权**：`Authorizer` 端口（默认 `PermissiveAuthorizer`）+ `OrganizationAuthorizer(org)` 适配器，直接复用 v0.1 的 `canManage`，实现「不能管的人不能派活、不能向他升级」。
+- **EventBus**：同步 pub/sub，支持类型过滤、退订、监听器错误隔离；每次 commit 后发布 `LoggedEvent`。
+- **验收已通过**：建任务 → 派给下属 → 向下委派 → 完成 → 提交报告 → 上级审批 → 决策 → 审批 → 阻塞升级（沿汇报线）→ 事件重放一致；越权派活被拒绝。
+- 事件清单：`task/created|assigned|delegated|claimed|started|blocked|unblocked|completed|cancelled|escalated`、`report/submitted|approved|rejected`、`decision/requested|made`、`approval/requested|granted|denied`。
 
-### v0.3 DSH / Tobs Runtime 适配层
+### v0.3 DSH / Tobs Runtime 适配层 ★【下一步，最优先】
 - **新建包** `packages/runtime`
 - 把 `OrganizationService` 的 Bot 注册为 DSH 的 Agent；把 Task 执行映射为 DSH 的 agent-loop 调用；Bot 间通信通过 Task 委派而非消息。
 - 复用 Tobs 的 PersonaBot 身份、SOUL/MEMORY 机制。
@@ -219,14 +261,15 @@ org.canManage(BotId('ceo'), BotId('eng1'))   // true
 
 ---
 
-## 8. 给接手者的 5 条建议
+## 8. 给接手者的 6 条建议
 
-1. **先读懂 `packages/organization/src/service.ts` 的命令范式**，再写任何新包——所有后续包都是这个模式的复制扩展。
-2. **权限校验永远走 `canManage` / `can`**，不要在业务代码里重新算 rank。
+1. **先读懂 `packages/organization/src/service.ts` 与 `packages/task/src/service.ts` 的命令范式**，再写任何新包——所有后续包都是这个模式的复制扩展。
+2. **权限校验永远走 `Authorizer.canManage` / `can`**，不要在业务代码里重新算 rank；新包也建议注入同一端口而非直接依赖 `OrganizationService`。
 3. **新增事件类型时，同步更新** `events.ts` 的联合类型 + `projection.ts` 的 `applyEvent` switch + 测试。漏一个就编译不过，这是好事。
-4. **别急着接 DSH/Tobs 源码**：先把领域核心（task/memory/skill/policy）用纯 TS + 内存存储跑通、测试覆盖，最后再用 `packages/runtime` 接真实执行引擎。
-5. **改名已定稿为 CompbotOrg**，仓库、scope、文档都已统一。除非有强理由，不要再动名字——全局替换和重新发布成本很高。
+4. **别急着接 DSH/Tobs 源码**：`packages/task` 已经示范了「纯 TS + 内存存储 + 完整测试」的标准做法，按同样范式继续做 artifact / memory / skill / policy，最后再用 `packages/runtime` 接真实执行引擎。
+5. **新包记得登记三处**：根 `tsconfig.json` 的 references、根 `package.json` 的 verify（若有 demo）、`vitest.config.ts` 的 alias（若测试跨包 import）。
+6. **改名已定稿为 CompbotOrg**，仓库、scope、文档都已统一。除非有强理由，不要再动名字——全局替换和重新发布成本很高。
 
 ---
 
-祝顺利。这个项目的核心壁垒不在「让 Bot 跑起来」（DSH/Tobs 已经解决），而在「让一群 Bot 像组织一样协作、可控、可审计」。v0.1 已经把「组织」这层钉死了，往下是水到渠成。
+祝顺利。这个项目的核心壁垒不在「让 Bot 跑起来」（DSH/Tobs 已经解决），而在「让一群 Bot 像组织一样协作、可控、可审计」。v0.1 把「组织」钉死，v0.2 让组织开始「动」起来，往下是水到渠成。

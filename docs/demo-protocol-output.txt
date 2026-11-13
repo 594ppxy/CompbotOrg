@@ -1,0 +1,20 @@
+========================================================================
+CompbotOrg — v0.2 Organization Protocol demo
+========================================================================
+
+[0] Reporting line: Ada (CEO) > Margaret (Director) > Ken (Engineer)
+
+[1] Created task-1 "Ship the v0.2 protocol" and assigned it to Margaret
+[2] Margaret delegated to Ken; Ken started the work
+[3] Unauthorized assignment rejected: TASK_PERMISSION_DENIED
+[4] report-1 submitted by Ken, approved by Margaret
+[5] decision-1 decided by Ada: approved
+[6] approval-1 granted by Margaret
+[7] escalation-1: Ken escalated to bot-margaret via the reporting line
+
+[8] Event log: 15 events; replay matches: true
+    01 task/created | 02 task/assigned | 03 task/delegated | 04 task/started | 05 task/completed | 06 report/submitted | 07 report/approved | 08 decision/requested | 09 decision/made | 10 approval/requested | 11 approval/granted | 12 task/created | 13 task/assigned | 14 task/blocked | 15 task/escalated
+
+[9] Stats: {"taskCount":2,"openTaskCount":1,"completedTaskCount":1,"blockedTaskCount":1,"reportCount":1,"pendingReportCount":0,"pendingDecisionCount":0,"pendingApprovalCount":0,"escalationCount":1}
+
+Protocol loop complete.

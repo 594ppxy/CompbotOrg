@@ -1,6 +1,6 @@
-# 架构说明 — v0.1 Organization Core
+# 架构说明 — v0.1 Organization Core / v0.2 Organization Protocol
 
-本文说明 `packages/organization` 的内部结构、关键决策与后续扩展点。
+本文说明 `packages/organization` 与 `packages/task` 的内部结构、关键决策与后续扩展点。
 
 ---
 
@@ -10,8 +10,9 @@
 ┌─────────────────────────────────────────────────┐
 │  apps (web / cli)          ← v0.3+              │
 ├─────────────────────────────────────────────────┤
-│  Organization Protocol     ← v0.2               │
-│  (Task / Report / Review / Decision)            │
+│  ★ Organization Protocol   ← v0.2 已实现        │
+│  (Task / Report / Decision / Approval /         │
+│   Escalation / EventBus / Authorizer)           │
 ├─────────────────────────────────────────────────┤
 │  ★ Organization Core       ← v0.1 本包          │
 │  Organization / Department / Role / Membership  │
@@ -194,7 +195,7 @@ canReportTo(state, botId, managerId) =
 
 ## 8. 测试策略
 
-48 个测试分六组：
+`packages/organization`：48 个测试分六组：
 
 | 组 | 覆盖 |
 |----|------|
@@ -209,37 +210,47 @@ canReportTo(state, botId, managerId) =
 
 **时间被注入**（`now: () => new Date('2026-01-01...')`），所以断言可以做时间无关的比较。
 
+`packages/task`：76 个测试分十组：
+
+| 组 | 覆盖 |
+|----|------|
+| task creation and validation | 默认值、字段、空标题/超长/未知优先级、ID 单调、未知 ID |
+| task lifecycle | 指派/重复指派/终态、认领、开始、阻塞解阻、完成、取消、委派深度 |
+| authorization | `OrganizationAuthorizer` 的 canManage/managerOf、CEO→Director→Engineer 链路、越权派活/向上委派、外部 Bot、代完成、取消权限、宽松默认 |
+| escalation | 汇报线自动定位、显式目标在线上/离线、自升级、无目标、独立模式、终态、多次升级记录 |
+| reports | 提交关联、状态拒绝、空摘要、经理审批、自动定位审阅人、自审/平级拒绝、驳回、重复审阅 |
+| decisions | 请求/作出、默认裁定人、自决、非法 outcome/重复裁定、越权裁定、未知 ID |
+| approvals | 请求/批准/驳回、默认审批人、自审批、无管理权的审批人、非指定审批人、上级代批、重复/未知 |
+| event bus | seq 单调、类型过滤、退订、错误隔离、直接发布、服务暴露 |
+| replay / restore | 投影一致、纯函数折叠、畸形日志不抛错、恢复不发布、append-only |
+| queries / stats | 按负责人/创建者过滤、全量计数器、状态视图 |
+
+`vitest.config.ts` 把两个 workspace 包 alias 到源码，测试无需预构建 `dist`；`tsc -b` 通过 project references 保证包间编译顺序。
+
 ---
 
 ## 9. 后续扩展点
 
-### v0.2 Organization Protocol
+### v0.2 Organization Protocol ✅ 已实现（`packages/task`）
 
-新增 `packages/protocol`，建立在 Core 之上：
+实际落地的形态与早期草案略有差异，以代码为准：
 
-```ts
-interface Task {
-  id: TaskId
-  creatorId: BotId
-  assigneeId?: BotId
-  departmentId: DepartmentId
-  status: 'draft' | 'assigned' | 'in_progress' | 'review' | 'blocked' | 'done' | 'cancelled'
-  blockedBy: TaskId[]
-  artifactIds: ArtifactId[]
-}
+| 早期草案 | 实际实现 |
+|----------|----------|
+| `packages/protocol` | `packages/task` |
+| Task 带 `departmentId` / `blockedBy` / `artifactIds` | Task 不绑部门（由 assignee 归属决定）；`blocker?: string`；`artifactRefs: readonly string[]`（留给 v0.4 Artifact FS 解析） |
+| 仅 Task / Report | 另有 Decision / Approval / Escalation 三个实体，共 18 种事件 |
+| 授权直接调用 `canManage` | 通过 `Authorizer` 端口注入，`OrganizationAuthorizer` 适配 v0.1，独立运行时用 `PermissiveAuthorizer` |
+| 无事件总线 | `EventBus` 在每次 commit 后同步发布 `LoggedEvent` |
 
-interface Report {
-  id: ReportId
-  taskId: TaskId
-  authorId: BotId
-  artifactIds: ArtifactId[]
-  status: 'submitted' | 'approved' | 'rejected'
-  reviewerId?: BotId
-  rejectionReason?: string
-}
+委派与升级的授权仍然复用 `canManage`：不能管的人就不能给他派活，也不能向他升级。
+升级目标还必须落在 `managerOf` 汇报线上（当组织已接入时）。
+
+`TaskService` 的数据流与 Core 一致，只多了一步发布：
+
+```text
+command → 校验 → store.append(event) → applyEvent → bus.publish(entry) → return 快照
 ```
-
-委派与升级的授权直接复用 `canManage`：不能管的人就不能给他派活，也不能向他升级。
 
 ### v0.4 Artifact FS
 
@@ -266,7 +277,7 @@ evaluate(policy, { actor, target, action, state }) → 'allow' | 'deny' | 'requi
 
 ---
 
-## 10. 已知限制（v0.1）
+## 10. 已知限制（截至 v0.2）
 
 1. **单组织**：一个 `OrganizationService` 实例只承载一个组织。多组织需要多实例或改造 `OrganizationState`。
 2. **内存存储**：`MemoryOrganizationStore` 不持久化。生产需要实现 `OrganizationStore`。
@@ -274,5 +285,8 @@ evaluate(policy, { actor, target, action, state }) → 'allow' | 'deny' | 'requi
 4. **无软删除的部门**：部门删除是硬删除（但要求空部门），历史事件仍保留。
 5. **rank 是缓存值**：`BotMembership.rank` 从角色复制而来，如果角色的 rank 被修改（v0.1 不支持修改角色），缓存会失效。
 6. **无批量操作**：所有命令单条执行，批量导入需要循环调用。
+7. **两条独立事件日志**：`OrganizationService` 与 `TaskService` 各持一份 log，没有跨日志事务；v1.0 串联时需要统一存储或 saga 式补偿。
+8. **Artifact 只是字符串引用**：`artifactRefs` 尚未接入 v0.4 的 Artifact FS，不做存在性校验。
+9. **无持久化 / HTTP API / CLI / 真实执行引擎**：与 v0.1 一样刻意留白。
 
-这些限制都是刻意留到后续版本解决的，v0.1 的目标是把领域模型钉死，而不是把功能做全。
+这些限制都是刻意留到后续版本解决的，v0.1/v0.2 的目标是把领域模型与协议钉死，而不是把功能做全。
