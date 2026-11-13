@@ -27,6 +27,12 @@ importers:
         specifier: workspace:*
         version: link:../../packages/organization
 
+  examples/demo-product:
+    dependencies:
+      '@compbotorg/company':
+        specifier: workspace:*
+        version: link:../../packages/company
+
   examples/demo-protocol:
     dependencies:
       '@compbotorg/organization':
@@ -36,7 +42,94 @@ importers:
         specifier: workspace:*
         version: link:../../packages/task
 
+  packages/api:
+    dependencies:
+      '@compbotorg/company':
+        specifier: workspace:*
+        version: link:../company
+
+  packages/artifact:
+    dependencies:
+      '@compbotorg/organization':
+        specifier: workspace:*
+        version: link:../organization
+
+  packages/cli:
+    dependencies:
+      '@compbotorg/company':
+        specifier: workspace:*
+        version: link:../company
+
+  packages/company:
+    dependencies:
+      '@compbotorg/artifact':
+        specifier: workspace:*
+        version: link:../artifact
+      '@compbotorg/goal':
+        specifier: workspace:*
+        version: link:../goal
+      '@compbotorg/memory':
+        specifier: workspace:*
+        version: link:../memory
+      '@compbotorg/organization':
+        specifier: workspace:*
+        version: link:../organization
+      '@compbotorg/policy':
+        specifier: workspace:*
+        version: link:../policy
+      '@compbotorg/registry':
+        specifier: workspace:*
+        version: link:../registry
+      '@compbotorg/runtime':
+        specifier: workspace:*
+        version: link:../runtime
+      '@compbotorg/skill':
+        specifier: workspace:*
+        version: link:../skill
+      '@compbotorg/task':
+        specifier: workspace:*
+        version: link:../task
+
+  packages/goal:
+    dependencies:
+      '@compbotorg/organization':
+        specifier: workspace:*
+        version: link:../organization
+
+  packages/memory:
+    dependencies:
+      '@compbotorg/organization':
+        specifier: workspace:*
+        version: link:../organization
+
   packages/organization: {}
+
+  packages/policy:
+    dependencies:
+      '@compbotorg/organization':
+        specifier: workspace:*
+        version: link:../organization
+
+  packages/registry:
+    dependencies:
+      '@compbotorg/organization':
+        specifier: workspace:*
+        version: link:../organization
+
+  packages/runtime:
+    dependencies:
+      '@compbotorg/organization':
+        specifier: workspace:*
+        version: link:../organization
+      '@compbotorg/task':
+        specifier: workspace:*
+        version: link:../task
+
+  packages/skill:
+    dependencies:
+      '@compbotorg/organization':
+        specifier: workspace:*
+        version: link:../organization
 
   packages/task:
     dependencies:

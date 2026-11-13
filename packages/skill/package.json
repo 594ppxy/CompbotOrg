@@ -1,0 +1,22 @@
+{
+  "name": "@compbotorg/skill",
+  "version": "0.6.0",
+  "description": "Skill Protocol for CompbotOrg: skill and connector registration, installation, enablement and risk-gated installs",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@compbotorg/organization": "workspace:*"
+  }
+}

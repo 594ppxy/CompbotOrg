@@ -1,6 +1,6 @@
 {
   "name": "compbotorg",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "CompbotOrg (Company Bot Organization OS) — From AI Agents to AI Organizations",
   "license": "MIT",
@@ -16,7 +16,10 @@
     "test:watch": "vitest",
     "demo": "tsc -b && tsx examples/demo-company/main.ts",
     "demo:protocol": "tsc -b && tsx examples/demo-protocol/main.ts",
-    "verify": "tsc -b --force && vitest run && tsx examples/demo-company/main.ts > /dev/null && tsx examples/demo-protocol/main.ts > /dev/null && echo 'all checks passed'"
+    "demo:product": "tsc -b && tsx examples/demo-product/main.ts",
+    "serve": "tsx packages/api/src/main.ts",
+    "cli": "tsx packages/cli/src/main.ts",
+    "verify": "tsc -b --force && vitest run && tsx examples/demo-company/main.ts > /dev/null && tsx examples/demo-protocol/main.ts > /dev/null && tsx examples/demo-product/main.ts > /dev/null && echo 'all checks passed'"
   },
   "devDependencies": {
     "@types/node": "^22.13.0",

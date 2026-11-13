@@ -23,6 +23,16 @@
   "include": [],
   "references": [
     { "path": "./packages/organization" },
-    { "path": "./packages/task" }
+    { "path": "./packages/task" },
+    { "path": "./packages/runtime" },
+    { "path": "./packages/artifact" },
+    { "path": "./packages/memory" },
+    { "path": "./packages/skill" },
+    { "path": "./packages/policy" },
+    { "path": "./packages/registry" },
+    { "path": "./packages/goal" },
+    { "path": "./packages/company" },
+    { "path": "./packages/api" },
+    { "path": "./packages/cli" }
   ]
 }

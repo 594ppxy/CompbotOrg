@@ -1,0 +1,22 @@
+{
+  "name": "@compbotorg/memory",
+  "version": "0.5.0",
+  "description": "Three-layer Memory for CompbotOrg: organization, department and bot entries with Markdown import/export and search",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@compbotorg/organization": "workspace:*"
+  }
+}
