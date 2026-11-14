@@ -18,10 +18,24 @@ CompBotOrg 是一个建立在 DSH/DSHBot 之上的 AI Organization OS。
 
 设计必须严格参考项目负责人提供的原始设计图（即之前讨论中“AI Organization / CEO 指挥中心”的那张图）。
 
-参考对话：
-https://chatgpt.com/s/m_6af7cf7a460881919da8896d884a754c
+![CompBotOrg 设计参考图](images/design-reference.png)
 
-**注意：当前仓库已有的 CEO Workspace 不代表最终设计。不要围绕现有组件继续堆 UI；应该根据参考图重新校准布局、层级、间距、卡片比例、导航和信息密度。**
+参考图已存档在仓库中：[`docs/images/design-reference.png`](images/design-reference.png)（原始出处：<https://chatgpt.com/s/m_6af7cf7a460881919da8896d884a754c>）。
+
+**注意：旧的 `ceo-workspace.js` 浮层 Dashboard 已被删除，不要恢复它。当前三栏实现以 `organization-shell.js` 为准。**
+
+### 参考图精确拆解
+
+| 区域 | 内容 |
+|---|---|
+| 顶部栏 | 左「AI Organization / 智能组织 · 高效协同」，中「搜索员工、部门、项目…」，右通知 / 设置 / 头像 |
+| 最左窄栏 | 竖排图标：组织（选中，蓝色胶囊）/ 项目 / 任务 / 知识 / 设置 |
+| 左栏 | CEO 卡片（皇冠头像、在线、AI 总经理 · 全局调度）→ 组织概览 48 员工总数 / 12 工作中(绿) / 4 待处理(橙) / 2 阻塞(红) → 部门导航 管理层(3)、技术部(14)、研究部(12)、产品部(10)、运营部(9) → 快速分组 工作中 / 待处理 / 需要关注 / 空闲 → 项目（带进度条）→「＋ 新建任务」 |
+| 中栏（视觉中心） | 头部 CEO · 在线 / Chief Executive Officer · 统筹全局 +「组织关系」「执行看板」「···」；下方是**原生聊天**：用户气泡「把 AI Organization v1 做出来，这周完成第一版。」、CEO 回复内嵌「任务分解与分配」卡片（任务、Product AI 等标签、进度条、百分比、当前项目整体进度 42%）、后续对话与输入框「给 CEO 下达任务，或直接 @ 其他员工…」 |
+| 右栏 | 紫色渐变 CEO 卡片 +「让 AI 成为更强大的生产力」；Tab 状态 / 关系 / 任务 / 能力；基本信息（部门 管理层、职位 CEO、入职 2026-11-13、状态 在线·工作中）；下属团队 (32)；管理项目 (3) 带进度；组织关系图（CEO → CTO / COO / Research Director） |
+| 视觉 | 浅色底、白卡、大圆角、细边框、轻阴影；主色蓝紫，状态色绿 / 橙 / 红 / 灰；三栏约 56 + 220 + flex + 250 px |
+
+**最关键的一条**：任务分解卡片是嵌在 CEO 的消息里的，不是浮在聊天上方的独立 Dashboard。聊天必须占据中栏最大面积。
 
 ## 核心布局
 
@@ -83,15 +97,16 @@ https://chatgpt.com/s/m_6af7cf7a460881919da8896d884a754c
 
 ## 当前实现说明
 
-仓库当前已经有 organization graph、CEO prompt、sidebar 和 CEO Workspace 原型。
-这些可以复用其中的业务逻辑，但**视觉和交互必须以参考图重新校准**。
+当前实现（2026-11-14）：
 
-特别是：
+- `ds-bot/src/client/ceo-workspace.js`：**已删除**。它是一张盖住聊天的浮层 Dashboard，与参考图冲突。
+- `ds-bot/src/client/organization-shell.js`：左栏 `OrganizationNav` + 右栏 `OrganizationInspector`，数据全部来自 `roster.organization`。
+- `ds-bot/src/client/sidebar.js`：宽模式下挂载 `OrganizationNav`；rail 模式保留 DS Bot 原生 CEO tile。
+- `ds-bot/src/host/organization.js`：组织图 + 任务状态机 + 待决策，`organizationView()` 为纯函数（不写 state）。
+- `ds-bot/src/host/organization-tools.js` 与 `prompt.js`：CEO 用工具把目标变成项目/任务/委派，再用 `message_bot` 派人。
+- `ds-bot/src/client/styles.js` 的 `cb-*` 段：所有颜色走 `--bt-*` 变量，圆角只用 ui-standard 的阶梯值。
 
-- `ds-bot/src/client/ceo-workspace.js`：当前只是原型，不是最终设计。
-- `ds-bot/src/client/sidebar.js`：可以保留组织导航逻辑，但视觉应重新对齐参考图。
-- `ds-bot/src/host/organization.js`：组织模型可以继续复用。
-- `ds-bot/src/host/prompt.js`：CEO 行为原则可以继续复用。
+仍待 Polish：消息内嵌的任务分解卡、真实头像照片、动画与移动端细节。
 
 ## Definition of Done
 

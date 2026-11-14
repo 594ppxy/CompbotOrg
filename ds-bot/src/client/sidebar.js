@@ -17,6 +17,7 @@ import { showsDshRow } from './dsh-offer.js'
 import { quietly } from './diagnostics.js'
 import { frameLayout, dragColumn, RAIL_WIDTH, FALLBACK_SIDEBAR_WIDTH, userSidebarToggle } from './frame-layout.js'
 import { chatRoom, dshCollapsed } from './frame-watch.js'
+import { OrganizationNav } from './organization-shell.js'
 
 // -------------------------------------------------------------------------
 // Sidebar
@@ -531,13 +532,6 @@ export function TeamSidebar(props) {
     [order, sectionSet],
   )
   const main = roster.byId[roster.mainBotId]
-  const org = roster.organization ?? { departments: [], employees: [], projects: [], edges: [] }
-  const departments = org.departments ?? []
-  const employeeById = Object.fromEntries((org.employees ?? []).map(employee => [employee.id, employee]))
-  const departmentRows = departments.map(department => ({
-    department,
-    employees: (roster.bots ?? []).filter(bot => (employeeById[bot.id]?.departmentId ?? bot.departmentId) === department.id && bot.id !== roster.mainBotId),
-  })).filter(row => row.employees.length > 0)
   const glideKey = useMemo(
     () => `${sections.map(s => `${s.id}:${s.collapsed ? 1 : 0}`).join(',')}|${order.map(entry => `${entry.item.id}:${entry.item.sectionId ?? ''}`).join(',')}`,
     [sections, order],
@@ -821,13 +815,9 @@ export function TeamSidebar(props) {
       onDragEnd: () => { setDragId(null); setDropTarget(null) },
       onDragLeave: (event) => { if (!event.currentTarget.contains(event.relatedTarget)) setDropTarget(null) },
     },
-      wideContent ? (main ? h(BotRow, { ...rowProps, bot: main, marked: markedUnread[main.id] === true }) : roster.ready ? null : h('div', { className: 'bt-hint' }, bootFailed ? bootHint() : t('Setting up your Main Bot…'))) : null,
-      wideContent && departmentRows.length > 0
-        ? h('div', { className: 'cb-org-departments' }, departmentRows.map(({ department, employees }) => h('div', { key: department.id, className: 'cb-department' },
-            h('div', { className: 'cb-department-head' }, h('span', null, department.name), h('span', null, String(employees.length))),
-            employees.map(bot => h(BotRow, { ...rowProps, key: bot.id, bot, marked: markedUnread[bot.id] === true }))
-          )))
-        : null,
+      wideContent
+        ? h(OrganizationNav, { useRoster, useUi, actions })
+        : (main ? h(BotRow, { ...rowProps, bot: main, marked: markedUnread[main.id] === true }) : roster.ready ? null : h('div', { className: 'bt-hint' }, bootFailed ? bootHint() : t('Setting up your Main Bot…'))),
       sections.length > 0 && wideContent
         ? h('div', {
             className: 'bt-sec-ungrouped',

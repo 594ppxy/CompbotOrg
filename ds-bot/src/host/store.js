@@ -117,7 +117,10 @@ export function install(rt) {
     Object.assign(state, JSON.parse(EMPTY), parsed ?? {})
     state.prefs ??= {}
     let migrated = !hadCapabilities
-    if (state.organization === undefined) { ensureOrganization(state); migrated = true } else ensureOrganization(state)
+    // The organization graph is derived data, filled in for every team old or new.
+    // Filling it in is not a migration: a plain read must not write the team back
+    // and bump its revision, or every reader would see a roster change it did not make.
+    ensureOrganization(state)
     // Teams saved before the DSH Agent existed carry no `agents`; corrupt values reset.
     if (state.agents === null || typeof state.agents !== 'object' || Array.isArray(state.agents)) state.agents = {}
     // `computer` is the computer-use switch; absent or corrupt means off.

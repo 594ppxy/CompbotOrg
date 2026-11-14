@@ -6,7 +6,7 @@ import { install as installSide } from './side.js'
 import { handoffReply, questionReply, viewReply } from './parts.js'
 import { validateViewAnswer } from 'deep-view/core'
 import { COLORS, EXTRA_COLORS, ROUTE } from './constants.js'
-import { addDepartment, assignEmployee, ensureOrganization, organizationView, removeRelation, setRelation, upsertProject } from './organization.js'
+import { addDecision, addDepartment, addTask, assignEmployee, ensureOrganization, organizationView, planGoal, removeRelation, resolveDecision, setRelation, setTask, upsertProject } from './organization.js'
 
 const STAGED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
 const STAGED_MS = 30 * 60_000
@@ -344,12 +344,13 @@ export function install(rt) {
         case 'organization':
           await rt.load()
           return ok(organizationView(state))
-        case 'organization-department':
+        case 'organization-department': {
           await rt.load()
           ensureOrganization(state)
-          const department = addDepartment(state, body)
+          addDepartment(state, body)
           await rt.save()
           return ok(organizationView(state))
+        }
         case 'organization-relation':
           await rt.load()
           ensureOrganization(state)
@@ -367,6 +368,26 @@ export function install(rt) {
           await rt.load()
           ensureOrganization(state)
           upsertProject(state, body)
+          await rt.save()
+          return ok(organizationView(state))
+        case 'organization-plan':
+          await rt.load()
+          ensureOrganization(state)
+          planGoal(state, body)
+          await rt.save()
+          return ok(organizationView(state))
+        case 'organization-task':
+          await rt.load()
+          ensureOrganization(state)
+          if (body.action === 'add') addTask(state, body)
+          else setTask(state, body)
+          await rt.save()
+          return ok(organizationView(state))
+        case 'organization-decision':
+          await rt.load()
+          ensureOrganization(state)
+          if (body.action === 'resolve') resolveDecision(state, body)
+          else addDecision(state, body)
           await rt.save()
           return ok(organizationView(state))
         case 'create-bot': {

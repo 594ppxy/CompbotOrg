@@ -8,7 +8,9 @@
 
 **你必须把项目负责人提供的原始设计图当作 UI 的 Source of Truth。**
 
-参考对话：
+![CompBotOrg 设计参考图](docs/images/design-reference.png)
+
+参考图已存档：[`docs/images/design-reference.png`](docs/images/design-reference.png)。原始对话：
 https://chatgpt.com/s/m_6af7cf7a460881919da8896d884a754c
 
 项目负责人已经明确指出：当前仓库的 CEO Workspace 视觉实现已经偏离参考图。
@@ -160,22 +162,17 @@ CompBotOrg 只负责组织层、任务层和 UI 层的增强。
 
 ## 当前仓库
 
-你会看到这些已有实现：
+当前实现（2026-11-14 已完成 Phase 1–4）：
 
-- `ds-bot/src/host/organization.js`
-- `ds-bot/src/host/prompt.js`
-- `ds-bot/src/host/channel.js`
-- `ds-bot/src/client/sidebar.js`
-- `ds-bot/src/client/ceo-workspace.js`
-- `ds-bot/src/client/styles.js`
+- `ds-bot/src/host/organization.js`：组织图 + 任务状态机 + 待决策
+- `ds-bot/src/host/organization-tools.js`：CEO 的 6 个组织工具
+- `ds-bot/src/host/prompt.js`：CEO 行为规则 + 工具用法
+- `ds-bot/src/host/channel.js`：8 个 organization 端点
+- `ds-bot/src/client/organization-shell.js`：左栏导航 + 右栏 Inspector
+- `ds-bot/src/client/sidebar.js` / `styles.js`：挂载点与 `cb-*` 样式
+- `ds-bot/src/client/ceo-workspace.js`：**已删除**（旧的浮层 Dashboard，与参考图冲突，不要恢复）
 
-其中：
-
-- organization.js：业务逻辑可以继续复用
-- prompt.js：CEO 行为可以继续复用
-- sidebar.js：组织导航逻辑可以继续复用
-- ceo-workspace.js：**视觉原型可以大幅重做**
-- styles.js：可以重构 CEO UI 样式
+Phase 1–4 已落地，剩下 Phase 5：消息内嵌的任务分解卡、动画、hover、loading、空状态、响应式、深浅色细化。
 
 ## 特别禁止
 
@@ -192,7 +189,7 @@ CompBotOrg 只负责组织层、任务层和 UI 层的增强。
 
 ## 实现顺序
 
-### Phase 1 — 视觉还原
+### Phase 1 — 视觉还原 ✅
 
 先根据参考图重新做：
 
@@ -204,7 +201,7 @@ CompBotOrg 只负责组织层、任务层和 UI 层的增强。
 
 先做到“看起来就是参考图里的产品”。
 
-### Phase 2 — 真实数据
+### Phase 2 — 真实数据 ✅
 
 把 organization graph 接入 UI：
 
@@ -214,7 +211,7 @@ CompBotOrg 只负责组织层、任务层和 UI 层的增强。
 - 关系
 - 状态
 
-### Phase 3 — CEO 执行流
+### Phase 3 — CEO 执行流 ✅
 
 让 CEO 真正把老板目标转换成：
 
@@ -222,7 +219,7 @@ Goal → Project → Tasks → Assignments
 
 然后通过现有 DSHBot 能力联系员工。
 
-### Phase 4 — 反馈闭环
+### Phase 4 — 反馈闭环 ✅
 
 员工结果 → CEO Review → CEO 汇报老板。
 
