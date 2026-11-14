@@ -34,18 +34,18 @@
   var DB = {
     me: { id: 'me', name: '我', role: '老板' },
     employees: [
-      { id: 'ceo', name: 'CEO', role: 'AI 总经理 · 全局调度', title: '总经理', level: 5, reportsTo: null, look: { shape: 'squircle', color: 'blue' }, dept: '管理层', status: 'online', joined: '2026-11-13', bio: '把老板的一句话变成可执行的计划，并对结果负责。', skills: ['目标拆解', '任务委派', '进度跟踪', '风险预警'], lead: true },
-      { id: 'coo', name: 'Organizer', role: 'COO · 运营调度', title: '运营总监', level: 4, reportsTo: 'ceo', look: { shape: 'hex', color: 'violet' }, dept: '管理层', status: 'online', joined: '2026-11-13', bio: '负责人力调度与跨部门协同，保证任务不断档。', skills: ['资源编排', '跨部门协调', '流程设计'] },
-      { id: 'cfo', name: 'CFO AI', role: 'CFO · 资源与预算', title: '财务总监', level: 4, reportsTo: 'ceo', look: { shape: 'moon', color: 'amber' }, dept: '管理层', status: 'idle', joined: '2026-11-13', bio: '盯住成本与产出比，给每个项目算清账。', skills: ['成本核算', '预算规划'] },
-      { id: 'cto', name: 'DSHBot', role: 'CTO · 技术负责人', title: '技术总监', level: 4, reportsTo: 'ceo', look: { shape: 'squircle', color: 'cyan' }, dept: '技术部', status: 'running', joined: '2026-11-13', bio: '负责整体技术架构与 DSHBot 核心改造。', skills: ['架构设计', 'Node.js', '系统集成'] },
-      { id: 'backend', name: 'Backend AI', role: '后端工程师', title: '高级后端工程师', level: 2, reportsTo: 'cto', look: { shape: 'blob', color: 'green' }, dept: '技术部', status: 'running', joined: '2026-11-13', bio: '组织关系网与数据接口的实现者。', skills: ['API 设计', '数据建模'] },
+      { id: 'ceo', name: 'CEO', role: 'AI 总经理 · 全局调度', title: '总经理', level: 5, reportsTo: null, look: { shape: 'whale', color: 'deepseek' }, dept: '管理层', status: 'online', joined: '2026-11-13', bio: '把老板的一句话变成可执行的计划，并对结果负责。', skills: ['目标拆解', '任务委派', '进度跟踪', '风险预警'], lead: true },
+      { id: 'coo', name: 'Organizer', role: 'COO · 运营调度', title: '运营总监', level: 4, reportsTo: 'ceo', look: { shape: 'gem', color: 'violet' }, dept: '管理层', status: 'online', joined: '2026-11-13', bio: '负责人力调度与跨部门协同，保证任务不断档。', skills: ['资源编排', '跨部门协调', '流程设计'] },
+      { id: 'cfo', name: 'CFO AI', role: 'CFO · 资源与预算', title: '财务总监', level: 4, reportsTo: 'ceo', look: { shape: 'saucer', color: 'yellow' }, dept: '管理层', status: 'idle', joined: '2026-11-13', bio: '盯住成本与产出比，给每个项目算清账。', skills: ['成本核算', '预算规划'] },
+      { id: 'cto', name: 'DSHBot', role: 'CTO · 技术负责人', title: '技术总监', level: 4, reportsTo: 'ceo', look: { shape: 'beacon', color: 'cyan' }, dept: '技术部', status: 'running', joined: '2026-11-13', bio: '负责整体技术架构与 DSHBot 核心改造。', skills: ['架构设计', 'Node.js', '系统集成'] },
+      { id: 'backend', name: 'Backend AI', role: '后端工程师', title: '高级后端工程师', level: 2, reportsTo: 'cto', look: { shape: 'gumdrop', color: 'green' }, dept: '技术部', status: 'running', joined: '2026-11-13', bio: '组织关系网与数据接口的实现者。', skills: ['API 设计', '数据建模'] },
       { id: 'platform', name: 'Platform AI', role: '平台工程师', title: '平台工程师', level: 2, reportsTo: 'cto', look: { shape: 'star', color: 'cyan' }, dept: '技术部', status: 'idle', joined: '2026-11-13', bio: '负责 Skill 系统与插件运行时。', skills: ['插件系统', '工具编排'] },
-      { id: 'qa', name: 'QA AI', role: '测试工程师', title: '质量工程师', level: 2, reportsTo: 'cto', look: { shape: 'circle', color: 'pink' }, dept: '技术部', status: 'idle', joined: '2026-11-13', bio: '守住发布前的最后一道门。', skills: ['自动化测试', '回归验证'] },
+      { id: 'qa', name: 'QA AI', role: '测试工程师', title: '质量工程师', level: 2, reportsTo: 'cto', look: { shape: 'kitty', color: 'magenta' }, dept: '技术部', status: 'idle', joined: '2026-11-13', bio: '守住发布前的最后一道门。', skills: ['自动化测试', '回归验证'] },
       { id: 'research', name: 'Research AI', role: '研究负责人', title: '研究总监', level: 4, reportsTo: 'ceo', look: { shape: 'hex', color: 'blue' }, dept: '研究部', status: 'idle', joined: '2026-11-13', bio: '负责下一代 Agent 平台的技术预研。', skills: ['论文复现', '技术选型'] },
       { id: 'model', name: 'Model AI', role: '模型工程师', title: '模型工程师', level: 2, reportsTo: 'research', look: { shape: 'moon', color: 'violet' }, dept: '研究部', status: 'review', joined: '2026-11-13', bio: '多 Agent 协作策略与评测。', skills: ['模型评测', 'Prompt 工程'] },
-      { id: 'product', name: 'Product AI', role: '产品经理', title: '产品主管', level: 3, reportsTo: 'ceo', look: { shape: 'star', color: 'amber' }, dept: '产品部', status: 'running', joined: '2026-11-13', bio: '把需求翻译成可交付的任务清单。', skills: ['需求分析', '任务拆解'] },
-      { id: 'design', name: 'Design AI', role: '交互设计师', title: '交互设计师', level: 2, reportsTo: 'product', look: { shape: 'blob', color: 'pink' }, dept: '产品部', status: 'idle', joined: '2026-11-13', bio: '负责三栏工作台的视觉与交互细节。', skills: ['视觉设计', '交互原型'] },
-      { id: 'ops', name: 'Ops AI', role: '运营负责人', title: '运营主管', level: 3, reportsTo: 'ceo', look: { shape: 'circle', color: 'green' }, dept: '运营部', status: 'idle', joined: '2026-11-13', bio: '内容、增长与知识库运营。', skills: ['内容运营', '数据分析'] }
+      { id: 'product', name: 'Product AI', role: '产品经理', title: '产品主管', level: 3, reportsTo: 'ceo', look: { shape: 'star', color: 'orange' }, dept: '产品部', status: 'running', joined: '2026-11-13', bio: '把需求翻译成可交付的任务清单。', skills: ['需求分析', '任务拆解'] },
+      { id: 'design', name: 'Design AI', role: '交互设计师', title: '交互设计师', level: 2, reportsTo: 'product', look: { shape: 'bunny', color: 'rose' }, dept: '产品部', status: 'idle', joined: '2026-11-13', bio: '负责三栏工作台的视觉与交互细节。', skills: ['视觉设计', '交互原型'] },
+      { id: 'ops', name: 'Ops AI', role: '运营负责人', title: '运营主管', level: 3, reportsTo: 'ceo', look: { shape: 'acorn', color: 'green' }, dept: '运营部', status: 'idle', joined: '2026-11-13', bio: '内容、增长与知识库运营。', skills: ['内容运营', '数据分析'] }
     ],
     departments: [
       { id: 'mgmt', name: '管理层', icon: '♛', desc: '制定目标、拆解计划、调度资源。' },
@@ -827,71 +827,170 @@
     var l = levelOf(emp);
     return '<span class="cb-lv" title="' + esc(l.name) + '">' + l.short + '</span>';
   }
-  var MARK_COLORS = {
-    blue: ['#6FB4FF', '#1F6FE5'],
-    violet: ['#BFA6FF', '#6A46DE'],
-    green: ['#84E3AE', '#1F9A63'],
-    amber: ['#FFD687', '#DE8F24'],
-    red: ['#FFA192', '#D24630'],
-    cyan: ['#93EAF1', '#1C97A6'],
-    pink: ['#FFB8D4', '#D8447C'],
-    slate: ['#BCC7D6', '#5A6A80']
+  /* ---------- avatars: DSHBot's own characters, drawn the same way ----------
+     The shape table lives in ds-characters.js (generated from the host). Each mark is
+     the body path, its fixed-color decals, a shade on the shaded side, and a highlight
+     on the lit side; the eyes are cut out of the whole thing through a mask, so they
+     show whatever is behind the avatar. Same maths, same result as the app. */
+  var DS = window.DSCharacters;
+  var CHARACTERS = DS.CHARACTERS;
+  var INK_HEX = {
+    deepseek: '#4D6BFE', charcoal: '#141416', graphite: '#2D2D2D', rose: '#EC2F6B',
+    sky: '#0AA8D6', tangerine: '#FF6900', cobalt: '#082DFF', black: '#000000',
+    brown: '#9A6B44', red: '#FF3E51', orange: '#FF6B1A', yellow: '#FFB020',
+    green: '#10B981', cyan: '#06B6D4', blue: '#2563EB', violet: '#8B5CF6',
+    magenta: '#F43F85', gray: '#8A8F98', aurora: '#00B8D4'
   };
-  var MARK_SHAPES = ['squircle', 'circle', 'star', 'hex', 'moon', 'blob'];
-  var MARK_SHAPE_LABELS = { squircle: '圆角方', circle: '圆形', star: '星形', hex: '六边形', moon: '月牙', blob: '水滴' };
-  var markSerial = 0;
-  function hashStr(v) {
-    var h = 2166136261, s0 = String(v == null ? 'bot' : v);
-    for (var i = 0; i < s0.length; i++) { h ^= s0.charCodeAt(i); h = Math.imul(h, 16777619) }
-    return h >>> 0;
+  var INK_GRADIENTS = { aurora: [[0, '#A4FFB0'], [0.42, '#00F0E4'], [1, '#2E9EF7']] };
+  function inkFill(color) {
+    if (/^#[0-9a-f]{6}$/i.test(color || '')) return color;
+    return INK_HEX[color] || INK_HEX.gray;
   }
-  function markShapeOf(emp) {
+  function paintCss(color) {
+    var g = INK_GRADIENTS[color];
+    if (!g) return inkFill(color);
+    return 'linear-gradient(135deg,' + g.map(function (st) { return st[1] + ' ' + (st[0] * 100) + '%' }).join(',') + ')';
+  }
+  function fnv1a(text) {
+    var v = 2166136261;
+    for (var i = 0; i < String(text).length; i++) v = Math.imul(v ^ String(text).charCodeAt(i), 16777619);
+    return v >>> 0;
+  }
+  function defaultColor(id) {
+    var t = (fnv1a(id) + 1831565813) | 0;
+    var n = Math.imul(t ^ (t >>> 15), 1 | t);
+    n = (n + Math.imul(n ^ (n >>> 7), 61 | n)) ^ n;
+    return DS.DEFAULT_COLORS[Math.floor((((n ^ (n >>> 14)) >>> 0) / 4294967296) * DS.DEFAULT_COLORS.length)];
+  }
+  function defaultShape(id) {
+    var v = fnv1a(id) | 0;
+    v = Math.imul(v ^ (v >>> 16), 73244475);
+    v = Math.imul(v ^ (v >>> 13), 3266489909);
+    return DS.DEFAULT_SHAPES[((v ^ (v >>> 16)) >>> 0) % DS.DEFAULT_SHAPES.length];
+  }
+  /* Generated lazily: SHAPES is built from the table the first time an avatar is drawn. */
+  var SHAPES = null;
+  function shapes() {
+    if (SHAPES) return SHAPES;
+    SHAPES = {};
+    Object.keys(CHARACTERS).forEach(function (id) {
+      var c = CHARACTERS[id];
+      var layers = (c.paints || []).map(function (pt) {
+        return '<path d="' + pt[0] + '" fill="' + pt[1] + '" fill-opacity="' + pt[2] + '"/>';
+      }).join('') + '<path d="' + c.shade + '" fill="#000" fill-opacity=".07"/>';
+      SHAPES[id] = {
+        label: c.label || id.charAt(0).toUpperCase() + id.slice(1),
+        size: 100, path: c.body, layers: layers, eyes: c.eyes
+      };
+    });
+    return SHAPES;
+  }
+  function hasShape(id) { return typeof id === 'string' && !!CHARACTERS[id]; }
+  function shapeId(id) { return hasShape(id) ? id : DS.FALLBACK_SHAPE }
+  function shapeOf(id) { return shapes()[shapeId(id)] }
+  function bodyOf(def, paint, flat) {
+    return '<g fill-rule="evenodd"><path d="' + def.path + '" fill="' + paint + '"/>' + (flat ? '' : def.layers) + '</g>';
+  }
+  function eyeMarkup(e) {
+    return '<g transform="translate(' + e[0] + ' ' + e[1] + ') rotate(' + e[4] + ')"><rect class="bt-eye" x="' + (-e[2] / 2) +
+      '" y="' + (-e[3] / 2) + '" width="' + e[2] + '" height="' + e[3] + '" rx="' + (e[2] / 2) + '"/></g>';
+  }
+  function maskBox(size) {
+    return 'maskUnits="userSpaceOnUse" x="' + (-size) + '" y="' + (-size) + '" width="' + (size * 3) + '" height="' + (size * 3) + '"';
+  }
+  function holes(def, eyes) {
+    return '<rect x="' + (-def.size) + '" y="' + (-def.size) + '" width="' + (def.size * 3) + '" height="' + (def.size * 3) + '" fill="#fff"/>' + eyes;
+  }
+  var MARK_ID = '%MASK%', markSerial = 0;
+  var markupCache = {};
+  function characterMarkup(shape, color) {
+    var key = shape + '|' + color;
+    if (markupCache[key] !== undefined) return markupCache[key];
+    var def = shapeOf(shape);
+    var eyes = '<g class="bt-gaze"><g class="bt-eyes" fill="#000">' + def.eyes.map(eyeMarkup).join('') + '</g></g>';
+    var stops = INK_GRADIENTS[color];
+    var gradient = stops ? '<linearGradient id="' + MARK_ID + 'g" gradientUnits="userSpaceOnUse" x1="18" y1="10" x2="78" y2="92">' +
+      stops.map(function (st) { return '<stop offset="' + st[0] + '" stop-color="' + st[1] + '"/>' }).join('') + '</linearGradient>' : '';
+    var body = '<g mask="url(#' + MARK_ID + ')">' + bodyOf(def, stops ? 'url(#' + MARK_ID + 'g)' : inkFill(color)) + '</g>';
+    markupCache[key] = '<defs>' + gradient + '<mask id="' + MARK_ID + '" ' + maskBox(def.size) + '>' + holes(def, eyes) + '</mask></defs>' +
+      '<g class="bt-b">' + body + '</g>';
+    return markupCache[key];
+  }
+  /* The selection ring of a picker cell follows the shape: a line just outside it. */
+  function shapeRing(shape, px) {
+    var def = shapeOf(shape);
+    var unit = def.size / px;
+    var id = 'ring' + (++markSerial);
+    return '<svg class="bt-ring" viewBox="0 0 ' + def.size + ' ' + def.size + '" aria-hidden="true"><defs><mask id="' + id + '" ' + maskBox(def.size) +
+      '>' + holes(def, '<g stroke="#000" stroke-width="' + (6 * unit) + '" stroke-linejoin="round">' + bodyOf(def, '#000', true) + '</g>') +
+      '</mask></defs><g mask="url(#' + id + ')" stroke="currentColor" stroke-width="' + (8 * unit) + '" stroke-linejoin="round">' +
+      bodyOf(def, 'currentColor', true) + '</g></svg>';
+  }
+  function colorOf(emp) {
+    var c = emp && emp.look && emp.look.color;
+    if (c && (INK_HEX[c] || INK_GRADIENTS[c])) return c;
+    return (emp && emp.id) ? defaultColor(String(emp.id)) : 'black';
+  }
+  function lookOf(emp) {
     var look = (emp && emp.look) || {};
-    if (look.shape && MARK_SHAPES.indexOf(look.shape) >= 0) return look.shape;
-    return MARK_SHAPES[hashStr((emp && emp.id) || (emp && emp.name) || 'bot') % MARK_SHAPES.length];
-  }
-  function markColorOf(emp) {
-    var look = (emp && emp.look) || {};
-    if (look.color && MARK_COLORS[look.color]) return look.color;
-    var keys = Object.keys(MARK_COLORS);
-    return keys[hashStr('c:' + ((emp && emp.id) || (emp && emp.name) || 'bot')) % keys.length];
-  }
-  function markPath(shape) {
-    if (shape === 'circle') return '<circle cx="50" cy="50" r="41"/>';
-    if (shape === 'star') return '<path d="M50 5 L61.5 36 L94 38 L68.5 58 L77 91 L50 72.5 L23 91 L31.5 58 L6 38 L38.5 36 Z"/>';
-    if (shape === 'hex') return '<path d="M50 4 L90 27 L90 73 L50 96 L10 73 L10 27 Z"/>';
-    if (shape === 'moon') return '<path d="M63 5 A45 45 0 1 0 63 95 A37 37 0 1 1 63 5 Z"/>';
-    if (shape === 'blob') return '<path d="M50 4 C73 4 95 22 95 48 C95 77 74 96 50 96 C26 96 5 77 5 50 C5 24 27 4 50 4 Z"/>';
-    return '<rect x="7" y="7" width="86" height="86" rx="31"/>';
+    return {
+      shape: shapeId(look.shape && hasShape(look.shape) ? look.shape : ((emp && emp.id) ? defaultShape(String(emp.id)) : DS.FALLBACK_SHAPE)),
+      image: look.image,
+      color: colorOf(emp)
+    };
   }
   function randomLook() {
-    var colors = Object.keys(MARK_COLORS);
+    var colors = DS.DEFAULT_COLORS;
+    var shapeKeys = DS.DEFAULT_SHAPES;
     return {
-      shape: MARK_SHAPES[Math.floor(Math.random() * MARK_SHAPES.length)],
+      shape: shapeKeys[Math.floor(Math.random() * shapeKeys.length)],
       color: colors[Math.floor(Math.random() * colors.length)]
     };
   }
-  function botMark(emp, size, cls) {
+  /* botMark: the avatar itself. `state` drives the working/alert badge. */
+  function botMark(emp, size, cls, opts) {
     size = size || 28;
-    var look = (emp && emp.look) || {};
+    var o = opts || {};
+    var look = lookOf(emp);
     if (look.image) {
-      return '<img class="cb-mark ' + (cls || '') + '" src="' + esc(look.image) + '" width="' + size + '" height="' + size + '" alt="">';
+      return '<span class="bt-mark ' + (cls || '') + '" style="width:' + size + 'px;height:' + size + 'px">' +
+        '<img class="bt-mark-img" src="' + esc(look.image) + '" alt=""></span>';
     }
-    var shape = markShapeOf(emp), color = markColorOf(emp), stops = MARK_COLORS[color];
-    var gid = 'mk' + (++markSerial);
-    return '<svg class="cb-mark ' + (cls || '') + '" width="' + size + '" height="' + size + '" viewBox="0 0 100 100" aria-hidden="true" focusable="false">' +
-      '<defs><linearGradient id="' + gid + '" x1="18" y1="10" x2="78" y2="92" gradientUnits="userSpaceOnUse">' +
-      '<stop offset="0" stop-color="' + stops[0] + '"/><stop offset="1" stop-color="' + stops[1] + '"/></linearGradient></defs>' +
-      '<g fill="url(#' + gid + ')">' + markPath(shape) + '</g>' +
-      '<g fill="#101820" opacity=".86">' +
-      '<rect x="33" y="41" width="7.5" height="19" rx="3.75" transform="rotate(-8 36.75 50.5)"/>' +
-      '<rect x="59" y="41" width="7.5" height="19" rx="3.75" transform="rotate(-8 62.75 50.5)"/>' +
-      '</g></svg>';
+    var id = 'bt-mark-' + (++markSerial);
+    var svg = characterMarkup(look.shape, look.color).split(MARK_ID).join(id);
+    return '<span class="bt-mark ' + (cls || '') + '" data-shape="' + look.shape + '" style="width:' + size + 'px;height:' + size + 'px">' +
+      '<svg viewBox="0 0 ' + shapeOf(look.shape).size + ' ' + shapeOf(look.shape).size + '" aria-hidden="true">' + svg + '</svg>' +
+      (o.busy ? '<span class="bt-badge bt-badge-working" title="执行中"><i></i></span>' : '') +
+      (o.main ? '<span class="bt-badge bt-badge-main" title="Main Bot">★</span>' : '') +
+      '</span>';
   }
   function avatar(emp, size) {
     var cls = size || 'cb-avatar-sm';
     var px = cls.indexOf('lg') >= 0 ? 42 : cls.indexOf('sm') >= 0 ? 22 : 28;
-    return botMark(emp, px, 'cb-avatar ' + cls);
+    var busy = false;
+    if (emp && emp.id) {
+      busy = DB.tasks.some(function (t) { return t.assignee === emp.id && t.executing });
+    }
+    return botMark(emp, px, 'cb-avatar ' + cls, { busy: busy, main: emp && emp.id === 'ceo' });
+  }
+  /* The picker: every character at once, five to a row, then the colour swatches.
+     Same grid, same ring, same ink order as the host's avatar editor. */
+  function characterGrid(look, onShapeAct, onColorAct) {
+    var grid = DS.PICKER_SHAPES.slice();
+    var rows = [];
+    for (var r = 0; r < grid.length; r += DS.PICKER_COLUMNS) rows.push(grid.slice(r, r + DS.PICKER_COLUMNS));
+    return '<div class="bt-shapes" role="group" aria-label="角色形状">' + rows.map(function (row) {
+      return '<div class="bt-shape-row">' + row.map(function (id) {
+        var on = look.shape === id;
+        return '<button type="button" class="bt-shape" data-act="' + onShapeAct + ':' + id + '" title="' + esc(shapeOf(id).label) +
+          '" aria-label="' + esc(shapeOf(id).label) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+          shapeRing(id, 36) + botMark({ id: '_pick', look: { shape: id, color: look.color } }, 36) + '</button>';
+      }).join('') + '</div>';
+    }).join('') + '</div>' +
+      '<div class="bt-colors" role="group" aria-label="角色颜色">' + DS.CHARACTER_COLORS.map(function (c) {
+        return '<button type="button" class="bt-color" data-act="' + onColorAct + ':' + c + '" title="' + c + '" aria-label="' + c +
+          '" aria-pressed="' + (look.color === c ? 'true' : 'false') + '"><span style="background:' + paintCss(c) + '"></span></button>';
+      }).join('') + '</div>';
   }
   function dot(status) {
     var s = EMP_STATUS[status] || EMP_STATUS.idle;
@@ -1226,6 +1325,21 @@
   }
   function msgHTML(m, i) {
     if (m.kind === 'action') return actionHTML(m);
+    /* 群里的 @ 派活：谁被点名、派了什么，一眼能看出来 */
+    if (m.kind === 'call' && m.to) {
+      var fromE = DB.byId[m.from] || DB.byId.ceo, toE = DB.byId[m.to];
+      if (!toE) return '';
+      var callTask = m.task ? DB.taskById(m.task) : null;
+      return '<div class="pv-msg is-call">' + botMark(fromE, 22, 'cb-avatar cb-avatar-sm') +
+        '<div class="pv-msg-body">' +
+        '<div class="pv-msg-name">' + esc(fromE.name) + '<span class="cb-act-time">' + esc(m.time || '') + '</span></div>' +
+        '<div class="cb-call">' +
+        '<span class="cb-call-to">' + botMark(toE, 16) + '@' + esc(toE.name) + '</span>' +
+        '<div class="cb-call-text">' + esc(m.text) + '</div>' +
+        (callTask ? '<button type="button" class="cb-act-task" data-act="open:task:' + callTask.id + '">▤ ' + esc(callTask.name) + ' · ' +
+          ({ pending: '待启动', running: '执行中', review: '待审核', blocked: '阻塞', done: '已完成' }[callTask.status] || callTask.status) + '</button>' : '') +
+        '</div></div></div>';
+    }
     var mine = m.from === 'me';
     var who = mine ? DB.me : (DB.byId[m.from] || DB.byId.ceo);
     var body = richTextHTML(m.text);
@@ -2218,12 +2332,15 @@
         return m.name + '(' + (m.title || m.role) + '，L' + (m.level || 1) + ')';
       }).join('、'),
       '',
-      '【群聊规则】',
+      '【群聊规则·像 DSHBot 一样干活】',
       '1. 老板在群里下指令，你负责拆解并派给最合适的成员，不能让老板自己去追人。',
-      '2. 需要交办时，在正文后另起一行输出：[[TASK]]任务名|成员姓名|项目名；可以多行。',
-      '3. 任务一经输出就会被真正创建并由该成员立即执行，所以任务名要具体可执行。',
-      '4. 回复要短，像 IM 群里的回话，不超过 3 句；不要写汇报稿。',
-      '5. 不要推诿，不要只口头说「我去安排」而不输出 [[TASK]]。',
+      '2. 派活就在群里直接 @ 人，一句一条，写清要他做什么、交什么。格式：',
+      '   @成员姓名 具体要做什么，交付什么',
+      '   被 @ 的人会立刻在群里收到这条消息并开工，所以别写成「你去跟进一下」这种空话。',
+      '3. 同时，每条派活后面另起一行输出：[[TASK]]任务名|成员姓名|项目名（任务名要具体可执行），它会进入任务看板并被跟踪。',
+      '4. 只 @ 真正要干活的人；不要 @ 自己，不要 @ 老板；一件事只 @ 一个人，需要协作就分别 @ 不同的人。',
+      '5. 回复要短，像 IM 群里的回话：先说一句你打算怎么拆，然后逐条 @ 人，不超过 3 句废话。',
+      '6. 不要推诿，不要只口头说「我去安排」而不 @ 人、不输出 [[TASK]]。',
       ''
     ].join('\n');
     return head + '\n' + aiContext(lead.id);
@@ -2295,13 +2412,16 @@
         from: lead.id, text: parsed.text || '（空回复）', time: now(),
         tasks: made.length ? made : null
       });
+      /* @ 了谁，谁就在群里收到这条指令并立刻开工 —— 这是 DSHBot 的派活方式 */
+      var called = callOutInGroup(g, lead.id, parsed.text, made);
       busyId = null; S.busy = false; abortCtl = null;
       setSendMode('send');
       saveConv(cid);
       render();
       scrollChat();
-      if (made.length) toast('已派发 ' + made.length + ' 个任务，成员开始执行');
       if (created.length) toast('已创建 ' + created.length + ' 个群聊');
+      if (called.length) toast('已在群里 @ ' + called.join('、') + '，他们已收到指令并开工');
+      else if (made.length) toast('已派发 ' + made.length + ' 个任务，成员开始执行');
     }).catch(function (e) {
       busyId = null; S.busy = false; abortCtl = null;
       setSendMode('send');
@@ -2310,6 +2430,44 @@
       saveConv(cid); render(); scrollChat();
       toast('群指令失败：' + why);
     });
+  }
+  /* The lead calls members out by @ in the group, DSHBot style: the named member gets
+     the instruction in the group transcript and starts on it right away. The task it
+     maps to is matched by assignee (the first task this round made for that person),
+     so the @ line and the task line stay one thing instead of two. */
+  function callOutInGroup(g, leadId, text, made) {
+    var called = [], seen = {};
+    var names = g.members.map(function (id) { return DB.byId[id] }).filter(Boolean)
+      .filter(function (m) { return m.id !== leadId && m.id !== 'ceo' })
+      .sort(function (a, b) { return b.name.length - a.name.length });
+    String(text || '').split('\n').forEach(function (line) {
+      var trimmed = line.trim();
+      if (!trimmed) return;
+      names.forEach(function (m) {
+        var at = trimmed.indexOf('@' + m.name);
+        if (at < 0 || seen[m.id]) return;
+        seen[m.id] = true;
+        var brief = trimmed.slice(at + m.name.length + 1).replace(/^[\s,:：，、]+/, '').replace(/^[-—·]\s*/, '').trim();
+        if (!brief) brief = trimmed;
+        var own = null;
+        for (var i = 0; i < made.length; i++) if (made[i].assignee === m.id) { own = made[i]; break }
+        conv('g:' + g.id).push({
+          from: leadId, to: m.id, kind: 'call',
+          text: brief.slice(0, 220), time: now(), task: own ? own.id : ''
+        });
+        called.push(m.name);
+        /* 被 @ 的人在自己的会话里也收到这条派活，并立刻执行 */
+        var cust = conv(m.id);
+        cust.push({
+          from: leadId, text: '群里 @ 你：' + brief.slice(0, 220), time: now(), fromGroup: g.name,
+          dispatch: own ? own.id : '', callFrom: leadId
+        });
+        saveConv(m.id);
+        if (own) queueTask(own.id);
+      });
+    });
+    if (called.length) saveConv('g:' + g.id);
+    return called;
   }
   function createGroupFromAI(spec) {
     if (!spec || !spec.name) return null;
@@ -2361,6 +2519,24 @@
     S.botDraft = randomLook();
     var host = $('#bot-look-preview');
     if (host) host.innerHTML = botMark({ id: 'draft', look: S.botDraft }, 56);
+  }
+  /* Picking a character in the new-Bot form: the preview and the selection ring both
+     update in place, without rebuilding the form (which would drop what was typed). */
+  function pickBotLook(kind, val) {
+    S.botDraft = S.botDraft || randomLook();
+    if (kind === 'shape') S.botDraft.shape = val;
+    else S.botDraft.color = val;
+    var host = $('#bot-look-preview');
+    if (host) host.innerHTML = botMark({ id: 'draft', look: S.botDraft }, 56);
+    var picker = $('#bot-look-picker');
+    if (picker) {
+      $$('.bt-shape', picker).forEach(function (b) {
+        b.setAttribute('aria-pressed', b.getAttribute('data-act') === 'botshape:' + S.botDraft.shape ? 'true' : 'false');
+      });
+      $$('.bt-color', picker).forEach(function (b) {
+        b.setAttribute('aria-pressed', b.getAttribute('data-act') === 'botcolor:' + S.botDraft.color ? 'true' : 'false');
+      });
+    }
   }
   function createBot() {
     var name = (($('#f-bot-name') || {}).value || '').trim();
@@ -2670,7 +2846,9 @@
       }).join('');
       modal.innerHTML = '<h3>新建 Bot</h3><p>设定岗位与级别，它会立刻加入组织、可被派活并进入群聊。</p>' +
         '<div class="cb-bot-preview"><span id="bot-look-preview">' + botMark({ id: 'draft', look: S.botDraft }, 56) + '</span>' +
-        '<button type="button" class="cb-ghost" data-act="botlook">换一个形象</button></div>' +
+        '<div class="cb-bot-preview-copy"><strong>形象</strong><small>点下面的角色和颜色，随时可改</small></div></div>' +
+        '<div class="cb-field" id="bot-look-picker"><label>角色与颜色</label>' +
+        characterGrid(S.botDraft, 'botshape', 'botcolor') + '</div>' +
         '<div class="cb-field"><label>名字</label><input id="f-bot-name" placeholder="例如：Data AI" maxlength="16"></div>' +
         '<div class="cb-field"><label>岗位</label><input id="f-bot-title" placeholder="例如：数据分析师" maxlength="20"></div>' +
         '<div class="cb-row"><div class="cb-field"><label>级别</label><select id="f-bot-level">' + lvOpts + '</select></div>' +
@@ -2947,6 +3125,8 @@
     else if (a === 'modal' && b === 'group-new') openModal('group-new');
     else if (a === 'modal' && b === 'create-group') createGroup();
     else if (a === 'botlook') shuffleBotLook();
+    else if (a === 'botshape') pickBotLook('shape', b);
+    else if (a === 'botcolor') pickBotLook('color', b);
     else if (a === 'modal' && b === 'create-doc') createDoc();
     else if (a === 'modal' && b === 'save-doc') saveDoc();
     else if (a === 'editdoc') { S.editDocId = b; openModal('doc-edit') }

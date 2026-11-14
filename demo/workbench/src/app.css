@@ -478,9 +478,36 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
 /* 文档编辑器：正文改为等宽、更高，便于直接改 Markdown */
 .cb-field textarea.cb-doc-editor{min-height:200px;font:11px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre;overflow-wrap:normal;overflow-x:auto}
 
-/* ===== Bot 几何头像（DSHBot 风格） ===== */
-.cb-mark{display:inline-block;flex:none;vertical-align:middle;border-radius:27%;overflow:visible}
-.cb-avatar.cb-mark{display:inline-block;width:auto;height:auto;border-radius:27%;background:none;overflow:visible}
+/* ===== Bot 头像：复用 DSHBot 的角色（形状 + 墨色 + 眼睛镂空） ===== */
+.bt-mark{display:inline-block;flex:none;position:relative;line-height:0}
+.bt-mark svg{width:100%;height:100%;overflow:visible;display:block}
+.bt-mark-img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;box-shadow:inset 0 0 0 1px var(--bt-line)}
+.bt-mark .bt-b,.bt-mark .bt-eye,.bt-mark .bt-eyes,.bt-mark .bt-gaze{transform-box:fill-box}
+.bt-mark .bt-b{transform-origin:50% 100%}
+.bt-mark[data-shape]{border-radius:0;background:none;overflow:visible}
+.cb-avatar.bt-mark{background:none;overflow:visible}
+/* 执行中/主 Bot 角标 */
+.bt-badge{position:absolute;right:-2px;bottom:-2px;display:flex;align-items:center;justify-content:center;border-radius:50%;box-shadow:0 0 0 1.5px var(--bt-main)}
+.bt-badge-working{width:9px;height:9px;background:#22a06b}
+.bt-badge-working i{width:4px;height:4px;border-radius:50%;background:#fff;animation:bt-beat 1.1s ease-in-out infinite}
+.bt-badge-main{width:11px;height:11px;background:var(--bt-accent);color:#fff;font-size:6px;line-height:1;font-style:normal}
+@keyframes bt-beat{0%,100%{scale:.6;opacity:.7}50%{scale:1;opacity:1}}
+@media (prefers-reduced-motion:reduce){.bt-badge-working i{animation:none}}
+
+/* 头像选择器：与宿主一致 —— 5 列角色网格 + 形状选择环 + 12 色墨盘 */
+.bt-shapes{display:flex;flex-direction:column;gap:4px}
+.bt-shape-row{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.bt-shape{position:relative;aspect-ratio:1;border:0;border-radius:10px;background:none;color:var(--bt-ink);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.bt-shape:hover{background:var(--bt-hover)}
+.bt-shape .bt-ring{position:absolute;left:50%;top:50%;width:36px;height:36px;translate:-50% -50%;overflow:visible;opacity:0;scale:.82;pointer-events:none;transition:opacity .14s ease,scale .18s cubic-bezier(.34,1.56,.64,1)}
+.bt-shape[aria-pressed=true] .bt-ring{opacity:1;scale:1}
+.bt-colors{display:grid;grid-template-columns:repeat(6,1fr);justify-items:center;gap:6px;padding-top:6px;border-top:.5px solid var(--bt-line);margin-top:8px}
+.bt-color{width:26px;height:26px;border-radius:50%;border:2px solid transparent;padding:2.5px;background:none;cursor:pointer;box-sizing:border-box;transition:border-color .14s ease,scale .12s ease}
+.bt-color:active{scale:.9}
+.bt-color span{display:block;width:100%;height:100%;border-radius:50%}
+.bt-color[aria-pressed=true]{border-color:var(--bt-ink)}
+.bt-color:focus-visible,.bt-shape:focus-visible{outline:2px solid var(--bt-accent);outline-offset:2px}
+
 .cb-lv{display:inline-block;margin-left:3px;padding:0 3.5px;border-radius:4px;font-size:7.5px;line-height:12px;font-weight:700;letter-spacing:.02em;background:rgba(64,116,255,.13);color:var(--bt-accent);vertical-align:1px;white-space:nowrap}
 
 /* 成员行：名字 + 级别 + 当前动作 */
@@ -509,6 +536,13 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
 .cb-room-head-marks{display:flex;gap:3px;margin-left:auto}
 .cb-room-mark{border:0;background:none;padding:0;cursor:pointer;line-height:0;border-radius:8px}
 .cb-room-head-meta{width:100%;font-size:8.5px;line-height:15px;color:var(--bt-ink-3);border-top:1px dashed var(--bt-line);padding-top:6px}
+
+/* 群里的 @ 派活 */
+.pv-msg.is-call{align-items:flex-start;margin:3px 0}
+.cb-call{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:7px 10px;border:1px solid rgba(64,116,255,.28);border-left:2.5px solid var(--bt-accent);border-radius:12px;background:rgba(64,116,255,.05);max-width:100%}
+.cb-call-to{display:inline-flex;align-items:center;gap:3px;flex:none;font-size:10px;font-weight:700;color:var(--bt-accent);white-space:nowrap}
+.cb-call-text{flex:1 1 200px;min-width:0;font-size:11px;line-height:17px;color:var(--bt-ink)}
+.cb-call .cb-act-task{flex:none;margin-left:auto;border:0;background:none;padding:0;font:inherit;font-size:8.5px;color:var(--bt-accent);cursor:pointer;white-space:nowrap}
 
 /* 动作流 */
 .pv-msg.is-action{align-items:flex-start;margin:2px 0}
