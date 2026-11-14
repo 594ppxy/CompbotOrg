@@ -49,6 +49,8 @@ node --test test/organization.test.js  # organization layer only
 
 不填 Key 时自动回退到本地规则回复，界面功能不变。Key 只存在浏览器 `localStorage`，不进入页面源码。
 
+样机还覆盖了：多行输入与停止生成、任务状态/进度/负责人直接编辑并联动项目与员工状态、知识库文档阅读、从任务实况生成周报、会话与任务持久化。
+
 详见 [`demo/workbench/README.md`](demo/workbench/README.md)。
 
 ## UI Design Reference
