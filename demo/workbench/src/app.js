@@ -34,18 +34,18 @@
   var DB = {
     me: { id: 'me', name: '我', role: '老板' },
     employees: [
-      { id: 'ceo', name: 'CEO', role: 'AI 总经理 · 全局调度', dept: '管理层', status: 'online', joined: '2026-11-13', bio: '把老板的一句话变成可执行的计划，并对结果负责。', skills: ['目标拆解', '任务委派', '进度跟踪', '风险预警'], lead: true },
-      { id: 'coo', name: 'Organizer', role: 'COO · 运营调度', dept: '管理层', status: 'online', joined: '2026-11-13', bio: '负责人力调度与跨部门协同，保证任务不断档。', skills: ['资源编排', '跨部门协调', '流程设计'] },
-      { id: 'cfo', name: 'CFO AI', role: 'CFO · 资源与预算', dept: '管理层', status: 'idle', joined: '2026-11-13', bio: '盯住成本与产出比，给每个项目算清账。', skills: ['成本核算', '预算规划'] },
-      { id: 'cto', name: 'DSHBot', role: 'CTO · 技术负责人', dept: '技术部', status: 'running', joined: '2026-11-13', bio: '负责整体技术架构与 DSHBot 核心改造。', skills: ['架构设计', 'Node.js', '系统集成'] },
-      { id: 'backend', name: 'Backend AI', role: '后端工程师', dept: '技术部', status: 'running', joined: '2026-11-13', bio: '组织关系网与数据接口的实现者。', skills: ['API 设计', '数据建模'] },
-      { id: 'platform', name: 'Platform AI', role: '平台工程师', dept: '技术部', status: 'idle', joined: '2026-11-13', bio: '负责 Skill 系统与插件运行时。', skills: ['插件系统', '工具编排'] },
-      { id: 'qa', name: 'QA AI', role: '测试工程师', dept: '技术部', status: 'idle', joined: '2026-11-13', bio: '守住发布前的最后一道门。', skills: ['自动化测试', '回归验证'] },
-      { id: 'research', name: 'Research AI', role: '研究负责人', dept: '研究部', status: 'idle', joined: '2026-11-13', bio: '负责下一代 Agent 平台的技术预研。', skills: ['论文复现', '技术选型'] },
-      { id: 'model', name: 'Model AI', role: '模型工程师', dept: '研究部', status: 'review', joined: '2026-11-13', bio: '多 Agent 协作策略与评测。', skills: ['模型评测', 'Prompt 工程'] },
-      { id: 'product', name: 'Product AI', role: '产品经理', dept: '产品部', status: 'running', joined: '2026-11-13', bio: '把需求翻译成可交付的任务清单。', skills: ['需求分析', '任务拆解'] },
-      { id: 'design', name: 'Design AI', role: '交互设计师', dept: '产品部', status: 'idle', joined: '2026-11-13', bio: '负责三栏工作台的视觉与交互细节。', skills: ['视觉设计', '交互原型'] },
-      { id: 'ops', name: 'Ops AI', role: '运营负责人', dept: '运营部', status: 'idle', joined: '2026-11-13', bio: '内容、增长与知识库运营。', skills: ['内容运营', '数据分析'] }
+      { id: 'ceo', name: 'CEO', role: 'AI 总经理 · 全局调度', title: '总经理', level: 5, reportsTo: null, look: { shape: 'squircle', color: 'blue' }, dept: '管理层', status: 'online', joined: '2026-11-13', bio: '把老板的一句话变成可执行的计划，并对结果负责。', skills: ['目标拆解', '任务委派', '进度跟踪', '风险预警'], lead: true },
+      { id: 'coo', name: 'Organizer', role: 'COO · 运营调度', title: '运营总监', level: 4, reportsTo: 'ceo', look: { shape: 'hex', color: 'violet' }, dept: '管理层', status: 'online', joined: '2026-11-13', bio: '负责人力调度与跨部门协同，保证任务不断档。', skills: ['资源编排', '跨部门协调', '流程设计'] },
+      { id: 'cfo', name: 'CFO AI', role: 'CFO · 资源与预算', title: '财务总监', level: 4, reportsTo: 'ceo', look: { shape: 'moon', color: 'amber' }, dept: '管理层', status: 'idle', joined: '2026-11-13', bio: '盯住成本与产出比，给每个项目算清账。', skills: ['成本核算', '预算规划'] },
+      { id: 'cto', name: 'DSHBot', role: 'CTO · 技术负责人', title: '技术总监', level: 4, reportsTo: 'ceo', look: { shape: 'squircle', color: 'cyan' }, dept: '技术部', status: 'running', joined: '2026-11-13', bio: '负责整体技术架构与 DSHBot 核心改造。', skills: ['架构设计', 'Node.js', '系统集成'] },
+      { id: 'backend', name: 'Backend AI', role: '后端工程师', title: '高级后端工程师', level: 2, reportsTo: 'cto', look: { shape: 'blob', color: 'green' }, dept: '技术部', status: 'running', joined: '2026-11-13', bio: '组织关系网与数据接口的实现者。', skills: ['API 设计', '数据建模'] },
+      { id: 'platform', name: 'Platform AI', role: '平台工程师', title: '平台工程师', level: 2, reportsTo: 'cto', look: { shape: 'star', color: 'cyan' }, dept: '技术部', status: 'idle', joined: '2026-11-13', bio: '负责 Skill 系统与插件运行时。', skills: ['插件系统', '工具编排'] },
+      { id: 'qa', name: 'QA AI', role: '测试工程师', title: '质量工程师', level: 2, reportsTo: 'cto', look: { shape: 'circle', color: 'pink' }, dept: '技术部', status: 'idle', joined: '2026-11-13', bio: '守住发布前的最后一道门。', skills: ['自动化测试', '回归验证'] },
+      { id: 'research', name: 'Research AI', role: '研究负责人', title: '研究总监', level: 4, reportsTo: 'ceo', look: { shape: 'hex', color: 'blue' }, dept: '研究部', status: 'idle', joined: '2026-11-13', bio: '负责下一代 Agent 平台的技术预研。', skills: ['论文复现', '技术选型'] },
+      { id: 'model', name: 'Model AI', role: '模型工程师', title: '模型工程师', level: 2, reportsTo: 'research', look: { shape: 'moon', color: 'violet' }, dept: '研究部', status: 'review', joined: '2026-11-13', bio: '多 Agent 协作策略与评测。', skills: ['模型评测', 'Prompt 工程'] },
+      { id: 'product', name: 'Product AI', role: '产品经理', title: '产品主管', level: 3, reportsTo: 'ceo', look: { shape: 'star', color: 'amber' }, dept: '产品部', status: 'running', joined: '2026-11-13', bio: '把需求翻译成可交付的任务清单。', skills: ['需求分析', '任务拆解'] },
+      { id: 'design', name: 'Design AI', role: '交互设计师', title: '交互设计师', level: 2, reportsTo: 'product', look: { shape: 'blob', color: 'pink' }, dept: '产品部', status: 'idle', joined: '2026-11-13', bio: '负责三栏工作台的视觉与交互细节。', skills: ['视觉设计', '交互原型'] },
+      { id: 'ops', name: 'Ops AI', role: '运营负责人', title: '运营主管', level: 3, reportsTo: 'ceo', look: { shape: 'circle', color: 'green' }, dept: '运营部', status: 'idle', joined: '2026-11-13', bio: '内容、增长与知识库运营。', skills: ['内容运营', '数据分析'] }
     ],
     departments: [
       { id: 'mgmt', name: '管理层', icon: '♛', desc: '制定目标、拆解计划、调度资源。' },
@@ -83,6 +83,10 @@
       { id: 'd6', title: '11-14 站会纪要', cat: '会议', ext: 'TXT', size: '2 KB', updated: '2026-11-14', desc: '三条线并行：数据层、CEO 工具、三栏 UI。' },
       { id: 'd7', title: '周报模板', cat: '模板', ext: 'MD', size: '1 KB', updated: '2026-11-02', desc: '本周进展 / 风险 / 下周计划。' },
       { id: 'd8', title: '需求评审清单', cat: '模板', ext: 'MD', size: '2 KB', updated: '2026-11-05', desc: '目标、范围、验收标准、依赖。' }
+    ],
+    groups: [
+      { id: 'g1', name: '经营例会', purpose: '每周目标对齐与跨部门调度', lead: 'ceo', members: ['ceo', 'coo', 'cfo', 'cto', 'research', 'product', 'ops'], createdBy: 'user', joined: '2026-11-13' },
+      { id: 'g2', name: 'AI Organization v1 交付群', purpose: '第一版上线冲刺，按任务推进', lead: 'cto', members: ['cto', 'backend', 'platform', 'qa', 'design', 'product'], createdBy: 'user', joined: '2026-11-14' }
     ]
   };
 
@@ -105,6 +109,33 @@
   DB.docs.forEach(function (d) { SEED_DOC_IDS[d.id] = true });
   var DOC_DIRTY = {};
   var SEED_DOC_BODY = JSON.parse(JSON.stringify(DOC_BODY));
+  var SEED_BOT_IDS = DB.employees.map(function (e) { return e.id });
+  var SEED_GROUP_IDS = DB.groups.map(function (g) { return g.id });
+  var ORG_STORE = 'cb.org.v1';
+  function saveOrg() {
+    try {
+      localStorage.setItem(ORG_STORE, JSON.stringify({
+        bots: DB.employees.filter(function (e) { return SEED_BOT_IDS.indexOf(e.id) < 0 }),
+        groups: DB.groups.filter(function (g) { return SEED_GROUP_IDS.indexOf(g.id) < 0 })
+      }));
+    } catch (e) {}
+  }
+  function loadOrg() {
+    try {
+      var raw = localStorage.getItem(ORG_STORE);
+      if (!raw) return;
+      var o = JSON.parse(raw);
+      (o.bots || []).forEach(function (b) {
+        if (!b || !b.id || DB.byId[b.id]) return;
+        DB.employees.push(b); DB.byId[b.id] = b;
+      });
+      (o.groups || []).forEach(function (g) {
+        if (!g || !g.id || DB.groups.some(function (x) { return x.id === g.id })) return;
+        DB.groups.push(g);
+      });
+    } catch (e) {}
+  }
+  function clearOrg() { try { localStorage.removeItem(ORG_STORE) } catch (e) {} }
 
   DB.byId = {};
   DB.employees.forEach(function (e) { DB.byId[e.id] = e });
@@ -317,7 +348,8 @@
     settingsSection: 'model',
     draftMentions: [],
     draftRefs: [],
-    mention: null
+    mention: null,
+    botDraft: null
   };
 
   /* ================= model connection ================= */
@@ -427,6 +459,12 @@
     L.push('回应里要明确回应被点名的人；需要交办时，[[TASK]] 的负责人优先从被点名的人里选，多个被点名者就依次分配。');
     L.push('被点名的人会收到消息抄送和派单通知，所以不要只口头说「我去安排」而不输出 [[TASK]]。');
     L.push('禁止点名成员列表之外的人。');
+    L.push('');
+    L.push('【执行纪律·硬规则】');
+    L.push('1. 你是执行者，不是转交者。收到任务先接单，立刻给出第一步动作；禁止「这不归我」「建议找某某」「我去协调一下」这类推诿。');
+    L.push('2. 需要别人配合时，说清要对方提供什么，同时给出你自己现在就能做的动作，不能把任务原样推回。');
+    L.push('3. 禁止空话：「正在推进」「持续跟进」「尽快处理」都不算动作，必须写清做了什么、依据什么、产出什么。');
+    L.push('4. 只有缺少关键信息且无法假设时才提问，提问的同时给出你的默认推进方案。');
     return L.join('\n');
   }
 
@@ -448,6 +486,92 @@
     if (out.length && out[0].role === 'assistant') out.shift();
     return out;
   }
+
+  function aiRaw(system, messages, onDelta, onThink) {
+    return new Promise(function (resolve, reject) {
+      var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      abortCtl = ctrl;
+      var timer = setTimeout(function () { if (ctrl) ctrl.abort() }, 90000);
+      var url, payload;
+      try {
+        url = aiUrl();
+        payload = {
+          model: AI.model,
+          temperature: Number(AI.temp) || 0.6,
+          max_tokens: Number(AI.max) || 900,
+          stream: true,
+          messages: [{ role: 'system', content: system }].concat(messages)
+        };
+      } catch (e) {
+        /* aiUrl() 可能因地址不是 HTTPS 而抛错。若让异常从 executor 直接冒出去，
+           会绕过挂在 fetch 链上的清理，留下 90 秒定时器和残留 controller。 */
+        clearTimeout(timer);
+        abortCtl = null;
+        reject(e);
+        return;
+      }
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.key },
+        body: JSON.stringify(payload),
+        signal: ctrl ? ctrl.signal : undefined
+      }).then(function (res) {
+        if (!res.ok) {
+          return res.text().then(function (t) {
+            var msg = 'HTTP ' + res.status;
+            try {
+              var j = JSON.parse(t);
+              msg = (j.error && (j.error.message || j.error.code)) || msg;
+            } catch (e) { if (t) msg += ' · ' + t.slice(0, 100) }
+            throw new Error(msg);
+          });
+        }
+        var ct = res.headers.get('content-type') || '';
+        if (ct.indexOf('text/event-stream') < 0) {
+          return res.text().then(function (t) {
+            var j = JSON.parse(t);
+            var c = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '';
+            if (c && onDelta) onDelta(c);
+            return c;
+          });
+        }
+        var reader = res.body.getReader(), dec = new TextDecoder(), buf = '', acc = '';
+        function pump() {
+          return reader.read().then(function (r) {
+            if (r.done) return acc;
+            buf += dec.decode(r.value, { stream: true });
+            var i;
+            while ((i = buf.indexOf('\n')) >= 0) {
+              var line = buf.slice(0, i).trim();
+              buf = buf.slice(i + 1);
+              if (!line || line.indexOf('data:') !== 0) continue;
+              var p = line.slice(5).trim();
+              if (!p || p === '[DONE]') continue;
+              try {
+                var jj = JSON.parse(p);
+                var d = (jj.choices && jj.choices[0] && jj.choices[0].delta) || {};
+                if (d.content) { acc += d.content; if (onDelta) onDelta(acc) }
+                else if (d.reasoning_content && onThink) onThink();
+              } catch (e) {}
+            }
+            return pump();
+          });
+        }
+        return pump();
+      }).then(function (text) {
+        clearTimeout(timer);
+        abortCtl = null;
+        var out = String(text || '').trim();
+        if (!out) throw new Error('模型返回空内容');
+        resolve(out);
+      }).catch(function (e) {
+        clearTimeout(timer);
+        abortCtl = null;
+        reject(e);
+      });
+    });
+  }
+
 
   function aiStream(empId, onDelta, onThink) {
     return new Promise(function (resolve, reject) {
@@ -651,31 +775,123 @@
       dispatchNotice(t, fromId);
       made.push(t);
     });
-    if (made.length) saveTasks();
+    if (made.length) {
+      saveTasks();
+      made.forEach(function (t) { queueTask(t.id) });
+    }
     return made;
   }
 
   function conv(id) {
     if (!S.messages[id]) {
-      var seed = SEED[id];
-      S.messages[id] = seed ? JSON.parse(JSON.stringify(seed)) : [
-        { from: 'them', text: '你好，我是 ' + (DB.byId[id] ? DB.byId[id].name : 'AI 员工') + '。有任务直接说，我会同步进度。', time: now() }
-      ];
+      if (id.indexOf('g:') === 0) {
+        var g0 = DB.groups.filter(function (x) { return 'g:' + x.id === id })[0];
+        S.messages[id] = g0 ? [{
+          from: g0.lead, kind: 'note', time: '',
+          text: '群聊已创建：' + (g0.purpose || '按需协作') + '。在这里下指令，我会拆给对应成员并跟踪执行。'
+        }] : [];
+      } else {
+        var seed = SEED[id];
+        S.messages[id] = seed ? JSON.parse(JSON.stringify(seed)) : [
+          { from: 'them', text: '你好，我是 ' + (DB.byId[id] ? DB.byId[id].name : 'AI 员工') + '。有任务直接说，我会同步进度。', time: now() }
+        ];
+      }
+      /* 新建的会话（尤其是按需新建的群聊）立刻落盘，否则刷新后只剩种子对话 */
+      saveConv(id);
     }
     return S.messages[id];
   }
   function convId() {
+    if (S.view === 'groups' && S.subject.type === 'group') return 'g:' + S.subject.id;
     if (S.subject.type === 'employee') return S.subject.id;
     return 'ceo';
   }
   function isChat() { return S.view === 'org' && S.subject.type === 'employee' }
+  function isGroup() { return S.view === 'groups' && S.subject.type === 'group' }
+  function currentGroup() {
+    if (!isGroup()) return null;
+    return DB.groups.filter(function (g) { return g.id === S.subject.id })[0] || null;
+  }
 
   /* ================= small renderers ================= */
+  /* ================= bot marks ================= */
+  var LEVELS = {
+    5: { short: 'L5', name: '决策层' },
+    4: { short: 'L4', name: '管理层' },
+    3: { short: 'L3', name: '主管' },
+    2: { short: 'L2', name: '骨干' },
+    1: { short: 'L1', name: '执行' }
+  };
+  function levelOf(emp) { return LEVELS[(emp && emp.level) || 1] || LEVELS[1] }
+  function levelTag(emp) {
+    var l = levelOf(emp);
+    return '<span class="cb-lv" title="' + esc(l.name) + '">' + l.short + '</span>';
+  }
+  var MARK_COLORS = {
+    blue: ['#6FB4FF', '#1F6FE5'],
+    violet: ['#BFA6FF', '#6A46DE'],
+    green: ['#84E3AE', '#1F9A63'],
+    amber: ['#FFD687', '#DE8F24'],
+    red: ['#FFA192', '#D24630'],
+    cyan: ['#93EAF1', '#1C97A6'],
+    pink: ['#FFB8D4', '#D8447C'],
+    slate: ['#BCC7D6', '#5A6A80']
+  };
+  var MARK_SHAPES = ['squircle', 'circle', 'star', 'hex', 'moon', 'blob'];
+  var MARK_SHAPE_LABELS = { squircle: '圆角方', circle: '圆形', star: '星形', hex: '六边形', moon: '月牙', blob: '水滴' };
+  var markSerial = 0;
+  function hashStr(v) {
+    var h = 2166136261, s0 = String(v == null ? 'bot' : v);
+    for (var i = 0; i < s0.length; i++) { h ^= s0.charCodeAt(i); h = Math.imul(h, 16777619) }
+    return h >>> 0;
+  }
+  function markShapeOf(emp) {
+    var look = (emp && emp.look) || {};
+    if (look.shape && MARK_SHAPES.indexOf(look.shape) >= 0) return look.shape;
+    return MARK_SHAPES[hashStr((emp && emp.id) || (emp && emp.name) || 'bot') % MARK_SHAPES.length];
+  }
+  function markColorOf(emp) {
+    var look = (emp && emp.look) || {};
+    if (look.color && MARK_COLORS[look.color]) return look.color;
+    var keys = Object.keys(MARK_COLORS);
+    return keys[hashStr('c:' + ((emp && emp.id) || (emp && emp.name) || 'bot')) % keys.length];
+  }
+  function markPath(shape) {
+    if (shape === 'circle') return '<circle cx="50" cy="50" r="41"/>';
+    if (shape === 'star') return '<path d="M50 5 L61.5 36 L94 38 L68.5 58 L77 91 L50 72.5 L23 91 L31.5 58 L6 38 L38.5 36 Z"/>';
+    if (shape === 'hex') return '<path d="M50 4 L90 27 L90 73 L50 96 L10 73 L10 27 Z"/>';
+    if (shape === 'moon') return '<path d="M63 5 A45 45 0 1 0 63 95 A37 37 0 1 1 63 5 Z"/>';
+    if (shape === 'blob') return '<path d="M50 4 C73 4 95 22 95 48 C95 77 74 96 50 96 C26 96 5 77 5 50 C5 24 27 4 50 4 Z"/>';
+    return '<rect x="7" y="7" width="86" height="86" rx="31"/>';
+  }
+  function randomLook() {
+    var colors = Object.keys(MARK_COLORS);
+    return {
+      shape: MARK_SHAPES[Math.floor(Math.random() * MARK_SHAPES.length)],
+      color: colors[Math.floor(Math.random() * colors.length)]
+    };
+  }
+  function botMark(emp, size, cls) {
+    size = size || 28;
+    var look = (emp && emp.look) || {};
+    if (look.image) {
+      return '<img class="cb-mark ' + (cls || '') + '" src="' + esc(look.image) + '" width="' + size + '" height="' + size + '" alt="">';
+    }
+    var shape = markShapeOf(emp), color = markColorOf(emp), stops = MARK_COLORS[color];
+    var gid = 'mk' + (++markSerial);
+    return '<svg class="cb-mark ' + (cls || '') + '" width="' + size + '" height="' + size + '" viewBox="0 0 100 100" aria-hidden="true" focusable="false">' +
+      '<defs><linearGradient id="' + gid + '" x1="18" y1="10" x2="78" y2="92" gradientUnits="userSpaceOnUse">' +
+      '<stop offset="0" stop-color="' + stops[0] + '"/><stop offset="1" stop-color="' + stops[1] + '"/></linearGradient></defs>' +
+      '<g fill="url(#' + gid + ')">' + markPath(shape) + '</g>' +
+      '<g fill="#101820" opacity=".86">' +
+      '<rect x="33" y="41" width="7.5" height="19" rx="3.75" transform="rotate(-8 36.75 50.5)"/>' +
+      '<rect x="59" y="41" width="7.5" height="19" rx="3.75" transform="rotate(-8 62.75 50.5)"/>' +
+      '</g></svg>';
+  }
   function avatar(emp, size) {
-    var cls = 'cb-avatar ' + (size || 'cb-avatar-sm');
-    var ch = emp && emp.lead ? '♛' : (emp && emp.name ? emp.name.slice(0, 1) : '?');
-    var color = emp && emp.lead ? 'background:linear-gradient(135deg,var(--bt-accent),var(--bt-accent-soft));color:#fff' : '';
-    return '<span class="' + cls + '" style="' + color + '">' + esc(ch) + '</span>';
+    var cls = size || 'cb-avatar-sm';
+    var px = cls.indexOf('lg') >= 0 ? 42 : cls.indexOf('sm') >= 0 ? 22 : 28;
+    return botMark(emp, px, 'cb-avatar ' + cls);
   }
   function dot(status) {
     var s = EMP_STATUS[status] || EMP_STATUS.idle;
@@ -683,6 +899,15 @@
   }
   function badge(text, cls) { return '<span class="cb-badge ' + (cls || '') + '">' + esc(text) + '</span>' }
   function empName(id) { var e = DB.byId[id]; return e ? e.name : id }
+  function currentAction(id) {
+    var list = DB.tasks.filter(function (t) { return t.assignee === id && t.status !== 'done' });
+    if (!list.length) return '待命';
+    var t = list[0];
+    if (t.status === 'blocked') return '阻塞 · ' + t.name;
+    if (t.status === 'review') return '待审核 · ' + t.name;
+    if (t.executing) return '执行中 · ' + t.name;
+    return '待启动 · ' + t.name;
+  }
   function projectStatusCls(st) {
     return st === '已完成' ? 'cb-badge-green' : st === '风险' ? 'cb-badge-red' : 'cb-badge-accent';
   }
@@ -733,12 +958,13 @@
     var running = DB.employees.filter(function (e) { return e.status === 'running' }).length;
     var review = DB.employees.filter(function (e) { return e.status === 'review' }).length;
     var blocked = DB.tasks.filter(function (t) { return t.status === 'blocked' }).length;
-    html += '<button type="button" class="cb-ceo-card" data-act="open:emp:ceo">' + avatar(DB.byId.ceo, 'cb-avatar-lg') +
-      '<span class="cb-ceo-copy"><span class="cb-ceo-name">CEO ' + dot('online') + '<small>在线</small></span>' +
-      '<small class="cb-ceo-role">AI 总经理 · 全局调度</small></span><span class="cb-chevron">›</span></button>';
+    var ceo = DB.byId.ceo;
+    html += '<button type="button" class="cb-ceo-card" data-act="open:emp:ceo">' + avatar(ceo, 'cb-avatar-lg') +
+      '<span class="cb-ceo-copy"><span class="cb-ceo-name">' + esc(ceo.name) + ' ' + levelTag(ceo) + ' ' + dot('online') + '<small>在线</small></span>' +
+      '<small class="cb-ceo-role">' + esc(ceo.title) + ' · ' + esc(ceo.role.split('·').pop().trim()) + '</small></span><span class="cb-chevron">›</span></button>';
 
     html += '<section class="cb-block"><div class="cb-block-head"><strong>组织概览</strong>' +
-      '<span class="cb-link" data-act="nav:settings">查看详情 ›</span></div><div class="cb-stats">' +
+      '<span class="cb-link" data-act="modal:bot-new">＋ 新建 Bot</span></div><div class="cb-stats">' +
       '<div class="cb-stat"><strong>' + DB.employees.length + '</strong><small>员工总数</small></div>' +
       '<div class="cb-stat"><strong class="cb-ink-green">' + running + '</strong><small>' + dot('running') + '工作中</small></div>' +
       '<div class="cb-stat"><strong class="cb-ink-amber">' + review + '</strong><small>' + dot('review') + '待处理</small></div>' +
@@ -759,11 +985,26 @@
         html += '<div class="cb-dept-members">';
         members.forEach(function (m) {
           html += '<button type="button" class="cb-employee ' + (S.subject.type === 'employee' && S.subject.id === m.id ? 'is-current' : '') + '" data-act="open:emp:' + m.id + '">' +
-            dot(m.status) + '<span>' + esc(m.name) + '</span></button>';
+            botMark(m, 18) + '<span class="cb-employee-name">' + esc(m.name) + '</span>' + levelTag(m) +
+            '<span class="cb-employee-do">' + esc(currentAction(m.id)) + '</span></button>';
         });
         html += '</div>';
       }
       html += '</div>';
+    });
+    html += '</div></section>';
+
+    html += '<section class="cb-block"><div class="cb-block-head"><strong>群聊</strong>' +
+      '<span class="cb-link" data-act="modal:group-new">＋ 新建</span></div><div class="cb-room-list">';
+    if (!DB.groups.length) html += '<div class="cb-empty">还没有群聊，点右上角新建</div>';
+    DB.groups.forEach(function (g) {
+      var on = S.view === 'groups' && S.subject.type === 'group' && S.subject.id === g.id;
+      html += '<button type="button" class="cb-room ' + (on ? 'is-current' : '') + '" data-act="open:group:' + g.id + '">' +
+        '<span class="cb-room-marks">' + g.members.slice(0, 3).map(function (id) {
+          var m2 = DB.byId[id]; return m2 ? botMark(m2, 15) : '';
+        }).join('') + '</span>' +
+        '<span class="cb-room-copy"><strong>' + esc(g.name) + '</strong><small>' + esc(g.purpose || '') + '</small></span>' +
+        '<span class="cb-count">' + g.members.length + '</span></button>';
     });
     html += '</div></section>';
 
@@ -900,9 +1141,9 @@
     head.innerHTML = centerHead();
     if (slot) slot.innerHTML = aiBanner();
 
-    if (isChat()) {
+    if (isChat() || isGroup()) {
       body.className = 'pv-chat';
-      body.innerHTML = chatMessages();
+      body.innerHTML = (isGroup() ? groupMessages() : chatMessages());
       if (!host.firstChild) {
         host.innerHTML = composerHTML();
         var ni = composerEl();
@@ -939,6 +1180,10 @@
       tasks: ['任务看板', DB.tasks.length + ' 个任务 · ' + DB.tasks.filter(function (t) { return t.status === 'blocked' }).length + ' 个阻塞'],
       knowledge: ['知识库', DB.docs.length + ' 篇文档'],
       settings: ['设置', aiReady() ? 'Agnes 已连接 · ' + AI.model : 'Agnes 未连接 · 请填入 API Key'],
+      groups: (function () {
+        var g = currentGroup();
+        return g ? [g.name, g.members.length + ' 名成员 · 负责人 ' + empName(g.lead)] : ['群聊', ''];
+      })(),
       search: ['搜索', S.query ? '“' + esc(S.query) + '” 的结果' : '输入关键词搜索员工、项目、任务和文档']
     };
     var t = titles[S.view] || ['工作台', ''];
@@ -956,7 +1201,31 @@
     if (busyId === convId()) out += typingHTML();
     return out;
   }
+  var ACT_META = {
+    claim: { label: '接单', cls: 'claim' },
+    step: { label: '执行', cls: 'step' },
+    produce: { label: '产出', cls: 'produce' },
+    submit: { label: '提交审核', cls: 'submit' },
+    done: { label: '已验收', cls: 'done' },
+    block: { label: '受阻', cls: 'block' },
+    ask: { label: '待确认', cls: 'ask' }
+  };
+  function actionHTML(m) {
+    var who = DB.byId[m.from] || DB.byId.ceo;
+    var meta = ACT_META[m.act] || ACT_META.step;
+    var task = m.task ? DB.taskById(m.task) : null;
+    return '<div class="pv-msg is-action">' + botMark(who, 22, 'cb-avatar cb-avatar-sm') +
+      '<div class="pv-msg-body">' +
+      '<div class="pv-msg-name">' + esc(who.name) + levelTag(who) +
+      '<span class="cb-act-time">' + esc(m.time || '') + '</span></div>' +
+      '<div class="cb-act cb-act-' + meta.cls + '">' +
+      '<span class="cb-act-tag">' + meta.label + '</span>' +
+      '<div class="cb-act-text">' + richTextHTML(m.text) + '</div>' +
+      (task ? '<button type="button" class="cb-act-task" data-act="open:task:' + task.id + '">▤ ' + esc(task.name) + '</button>' : '') +
+      '</div></div></div>';
+  }
   function msgHTML(m, i) {
+    if (m.kind === 'action') return actionHTML(m);
     var mine = m.from === 'me';
     var who = mine ? DB.me : (DB.byId[m.from] || DB.byId.ceo);
     var body = richTextHTML(m.text);
@@ -992,7 +1261,7 @@
       '<div class="pv-bubble"><span class="cb-think">正在思考<span class="cb-typing"><i></i><i></i><i></i></span></span></div></div></div>';
   }
   function aiBanner() {
-    if (!isChat()) return '';
+    if (!isChat() && !isGroup()) return '';
     if (!aiReady()) {
       return '<div class="cb-ai-banner" data-act="openai"><span><b>尚未连接 Agnes</b> · 填入 API Key 后，CEO 和员工由模型基于真实组织数据实时作答并自动派活</span><span class="cb-ai-badge">去配置 ›</span></div>';
     }
@@ -1026,6 +1295,8 @@
       '<div class="pv-overall"><span>当前项目整体进度：' + avg + '%</span><span class="pv-bar"><i style="width:' + avg + '%;background:var(--bt-accent)"></i></span></div></div>';
   }
   function composerPlaceholder() {
+    var g = currentGroup();
+    if (g) return '在「' + g.name + '」下指令，@ 成员可直接点名…';
     return '给 ' + (DB.byId[convId()] || DB.byId.ceo).name + ' 下达任务，或直接 @ 其他员工…';
   }
   function composerHTML() {
@@ -1233,6 +1504,11 @@
     var keys = ['pending', 'running', 'review', 'blocked', 'done'];
     return '<section class="cb-section cb-task-editor"><h4>编辑任务</h4>' +
       '<div class="cb-te-name">' + esc(t.name) + '</div>' +
+      '<div class="cb-te-row"><label>执行</label><div class="cb-seg">' +
+      '<button type="button" class="' + (t.executing ? 'is-current' : '') + '" data-act="taskrun:' + t.id + '">' + (t.executing ? '执行中…' : '执行') + '</button>' +
+      (t.status === 'review' ? '<button type="button" data-act="taskapprove:' + t.id + '">通过</button>' +
+        '<button type="button" data-act="taskreject:' + t.id + '">打回</button>' : '') +
+      '</div></div>' +
       '<div class="cb-te-row"><label>状态</label><div class="cb-seg">' +
       keys.map(function (k) {
         return '<button type="button" class="' + (t.status === k ? 'is-current' : '') + '" data-act="tstatus:' + t.id + ':' + k + '">' + STATUS[k].label + '</button>';
@@ -1547,10 +1823,36 @@
     if (emp) return inspectorEmployee(emp);
     if (proj) return inspectorProject(proj);
     if (dept) return inspectorDept(dept);
+    if (s.type === 'group') {
+      var grp = DB.groups.filter(function (g) { return g.id === s.id })[0];
+      if (grp) return inspectorGroup(grp);
+    }
     if (s.type === 'board') return inspectorBoard(s.id);
     return inspectorEmployee(DB.byId.ceo);
   }
 
+
+  function inspectorGroup(g) {
+    var members = g.members.map(function (id) { return DB.byId[id] }).filter(Boolean)
+      .slice().sort(function (a, b) { return (b.level || 1) - (a.level || 1) });
+    var tasks = DB.tasks.filter(function (t) { return g.members.indexOf(t.assignee) >= 0 && t.status !== 'done' });
+    var html = '<div class="cb-inspector-hero"><div class="cb-hero-top">' +
+      botMark(DB.byId[g.lead], 46, 'cb-avatar cb-avatar-lg') +
+      '<div class="cb-hero-copy"><div class="cb-hero-name"><span>' + esc(g.name) + '</span></div>' +
+      '<small>' + members.length + ' 名成员 · 负责人 ' + esc(empName(g.lead)) + '</small></div></div>' +
+      '<div class="cb-hero-quote">「 ' + esc(g.purpose || '按需协作') + ' 」</div></div>';
+    html += '<div class="cb-inspector-body">';
+    html += '<section class="cb-section"><h4>成员</h4><div class="cb-info">' + members.map(function (m) {
+      return '<button type="button" class="cb-member-row" data-act="open:emp:' + m.id + '">' + botMark(m, 22) +
+        '<span class="cb-member-copy"><strong>' + esc(m.name) + ' ' + levelTag(m) + '</strong><small>' + esc(m.title || m.role) + '</small></span>' +
+        '<span class="cb-employee-do">' + esc(currentAction(m.id)) + '</span></button>';
+    }).join('') + '</div></section>';
+    html += '<section class="cb-section"><h4>在办任务</h4><div class="cb-info">' +
+      (tasks.length ? tasks.slice(0, 6).map(function (t) {
+        return '<div class="cb-managed-row"><span class="cb-managed-name">' + esc(t.name) + '</span><small>' + esc(empName(t.assignee)) + '</small></div>';
+      }).join('') : '<div class="cb-empty">暂无在办任务</div>') + '</div></section></div>';
+    return html;
+  }
 
   function inspectorBoard(kind) {
     if (kind === 'tasks') {
@@ -1800,6 +2102,10 @@
     if (view === 'knowledge') S.subject = { type: 'board', id: 'docs' };
     if (view === 'settings') S.subject = { type: 'board', id: 'settings' };
     if (view === 'search') S.subject = { type: 'board', id: 'search' };
+    if (view === 'groups') {
+      var g0 = DB.groups[0];
+      S.subject = g0 ? { type: 'group', id: g0.id } : { type: 'board', id: 'groups' };
+    }
     S.inspectorTab = 'status';
     render();
     var box = $('[data-input=search]');
@@ -1848,6 +2154,7 @@
   }
 
   function send() {
+    if (isGroup()) { sendGroup(); return; }
     if (!isChat() || busyId === convId()) return;
     var input = composerEl(); if (!input) return;
     var text = input.value.replace(/\s+$/, ''); if (!text.trim()) return;
@@ -1883,6 +2190,221 @@
     streamReply(empId, chat, list, mentions);
   }
 
+  function groupMessages() {
+    var g = currentGroup();
+    if (!g) return '<div class="cb-empty-block">群聊不存在</div>';
+    var members = g.members.map(function (id) { return DB.byId[id] }).filter(Boolean);
+    var head = '<div class="cb-room-head">' +
+      '<div class="cb-room-head-copy"><strong>' + esc(g.name) + '</strong><small>' + esc(g.purpose || '') + '</small></div>' +
+      '<div class="cb-room-head-marks">' + members.slice(0, 8).map(function (m) {
+        return '<button type="button" class="cb-room-mark" data-act="open:emp:' + m.id + '" title="' + esc(m.name + ' · ' + m.title) + '">' +
+          botMark(m, 24) + '</button>';
+      }).join('') + '</div>' +
+      '<div class="cb-room-head-meta">' + members.length + ' 名成员 · 负责人 ' + esc(empName(g.lead)) +
+      ' · 你在此下指令，' + esc(empName(g.lead)) + ' 会拆给成员并跟踪执行</div></div>';
+    var list = conv(convId());
+    var out = head;
+    for (var i = 0; i < list.length; i++) out += msgHTML(list[i], i);
+    if (busyId === convId()) out += typingHTML();
+    return out;
+  }
+  function groupContext(g) {
+    var lead = DB.byId[g.lead] || DB.byId.ceo;
+    var members = g.members.map(function (id) { return DB.byId[id] }).filter(Boolean);
+    var head = [
+      '你是「' + lead.name + '」，' + (lead.title || lead.role) + '，是群「' + g.name + '」的负责人。',
+      '群目的：' + (g.purpose || '按需协作'),
+      '群成员：' + members.map(function (m) {
+        return m.name + '(' + (m.title || m.role) + '，L' + (m.level || 1) + ')';
+      }).join('、'),
+      '',
+      '【群聊规则】',
+      '1. 老板在群里下指令，你负责拆解并派给最合适的成员，不能让老板自己去追人。',
+      '2. 需要交办时，在正文后另起一行输出：[[TASK]]任务名|成员姓名|项目名；可以多行。',
+      '3. 任务一经输出就会被真正创建并由该成员立即执行，所以任务名要具体可执行。',
+      '4. 回复要短，像 IM 群里的回话，不超过 3 句；不要写汇报稿。',
+      '5. 不要推诿，不要只口头说「我去安排」而不输出 [[TASK]]。',
+      ''
+    ].join('\n');
+    return head + '\n' + aiContext(lead.id);
+  }
+  function parseGroupReply(text) {
+    var p = parseTasks(text);
+    var groups = [], bots = [], keep = [];
+    String(p.text || '').split('\n').forEach(function (line) {
+      var mg = /^\s*\[\[GROUP\]\]\s*(.+)$/.exec(line);
+      if (mg) {
+        var sg = mg[1].split('|').map(function (x) { return x.trim() });
+        if (sg[0]) groups.push({
+          name: sg[0].slice(0, 20),
+          members: (sg[1] || '').split(/[,，、]/).map(function (x) { return x.trim() }).filter(Boolean),
+          purpose: sg[2] || ''
+        });
+        return;
+      }
+      var mb = /^\s*\[\[BOT\]\]\s*(.+)$/.exec(line);
+      if (mb) {
+        var sb = mb[1].split('|').map(function (x) { return x.trim() });
+        if (sb[0]) bots.push({
+          name: sb[0].slice(0, 16), title: sb[1] || '执行',
+          level: parseInt(sb[2], 10) || 1, dept: sb[3] || '',
+          reportsTo: sb[4] || '', bio: sb[5] || ''
+        });
+        return;
+      }
+      keep.push(line);
+    });
+    return { text: keep.join('\n').replace(/\n{3,}/g, '\n\n').trim(), specs: p.specs, groups: groups, bots: bots };
+  }
+  function sendGroup() {
+    var g = currentGroup();
+    if (!g || busyId === convId()) return;
+    var input = composerEl(); if (!input) return;
+    var text = input.value.replace(/\s+$/, ''); if (!text.trim()) return;
+    if (!aiReady()) { toast('群聊指令需要先连接 Agnes'); return; }
+    var cid = convId(), list = conv(cid);
+    list.push({ from: 'me', text: text, time: now() });
+    input.value = ''; autoGrow(input); S.drafts[cid] = '';
+    saveConv(cid);
+    renderCenter(); scrollChat();
+
+    var lead = DB.byId[g.lead] || DB.byId.ceo;
+    busyId = cid; S.busy = true; S.stopped = false;
+    var body = $('#center-body');
+    body.insertAdjacentHTML('beforeend', streamingHTML(lead.id));
+    setSendMode('stop');
+    var host = body.querySelector('[data-stream]');
+    var bubble = host ? host.querySelector('.pv-bubble') : null;
+    var acc = '';
+    var sys = groupContext(g);
+    var msgs = list.filter(function (m) { return m.text && !m.err && m.kind !== 'note' }).slice(-16).map(function (m) {
+      return { role: m.from === 'me' ? 'user' : 'assistant', content: (m.from === 'me' ? '' : '[' + empName(m.from) + '] ') + m.text };
+    });
+    aiRaw(sys, msgs, function (full) {
+      acc = full;
+      if (bubble) {
+        var vis = parseGroupReply(acc).text || '正在拆解…';
+        bubble.innerHTML = esc(vis).replace(/\n/g, '<br>') + '<span class="cb-caret"></span>';
+      }
+      scrollChat();
+    }, null).then(function (full) {
+      var parsed = parseGroupReply(full || acc);
+      var made = commitTasks(parsed.specs, lead.id, []);
+      var created = parsed.groups.map(createGroupFromAI).filter(Boolean);
+      list.push({
+        from: lead.id, text: parsed.text || '（空回复）', time: now(),
+        tasks: made.length ? made : null
+      });
+      busyId = null; S.busy = false; abortCtl = null;
+      setSendMode('send');
+      saveConv(cid);
+      render();
+      scrollChat();
+      if (made.length) toast('已派发 ' + made.length + ' 个任务，成员开始执行');
+      if (created.length) toast('已创建 ' + created.length + ' 个群聊');
+    }).catch(function (e) {
+      busyId = null; S.busy = false; abortCtl = null;
+      setSendMode('send');
+      var why = aiExplain(e);
+      list.push({ from: lead.id, text: '群指令执行失败：' + why, time: now(), err: true });
+      saveConv(cid); render(); scrollChat();
+      toast('群指令失败：' + why);
+    });
+  }
+  function createGroupFromAI(spec) {
+    if (!spec || !spec.name) return null;
+    var ids = [];
+    (spec.members || []).forEach(function (name) {
+      var hit = null;
+      DB.employees.forEach(function (e) { if (!hit && (e.name === name || e.id === name)) hit = e });
+      if (hit && ids.indexOf(hit.id) < 0) ids.push(hit.id);
+    });
+    if (!ids.length) return null;
+    var leadId = ids.slice().sort(function (a, b) { return (DB.byId[b].level || 1) - (DB.byId[a].level || 1) })[0];
+    var g = {
+      id: uid('g'), name: spec.name.slice(0, 20), purpose: (spec.purpose || '按需协作').slice(0, 40),
+      lead: leadId, members: ids, createdBy: 'ai', joined: new Date().toISOString().slice(0, 10)
+    };
+    DB.groups.push(g);
+    saveOrg();
+    return g;
+  }
+  function openGroup(id) {
+    S.view = 'groups';
+    S.subject = { type: 'group', id: id };
+    S.inspectorTab = 'status';
+    render();
+    scrollChat();
+  }
+  function createGroup() {
+    var name = (($('#f-group-name') || {}).value || '').trim();
+    var purpose = (($('#f-group-purpose') || {}).value || '').trim();
+    if (!name) { toast('请填写群名'); return; }
+    var ids = $$('#f-group-members input:checked').map(function (x) { return x.value });
+    if (ids.length < 2) { toast('至少选择 2 名成员'); return; }
+    var lead = ($('#f-group-lead') || {}).value;
+    if (!lead || ids.indexOf(lead) < 0) {
+      lead = ids.slice().sort(function (a, b) { return (DB.byId[b].level || 1) - (DB.byId[a].level || 1) })[0];
+    }
+    var g = {
+      id: uid('g'), name: name.slice(0, 20), purpose: purpose || '按需协作',
+      lead: lead, members: ids, createdBy: 'user', joined: new Date().toISOString().slice(0, 10)
+    };
+    DB.groups.push(g);
+    saveOrg();
+    closeModal();
+    openGroup(g.id);
+    toast('已创建群聊：' + g.name);
+  }
+
+  function shuffleBotLook() {
+    S.botDraft = randomLook();
+    var host = $('#bot-look-preview');
+    if (host) host.innerHTML = botMark({ id: 'draft', look: S.botDraft }, 56);
+  }
+  function createBot() {
+    var name = (($('#f-bot-name') || {}).value || '').trim();
+    var title = (($('#f-bot-title') || {}).value || '').trim() || '执行';
+    if (!name) { toast('请填写名字'); return; }
+    if (DB.employees.some(function (e) { return e.name === name })) { toast('已有同名 Bot'); return; }
+    var level = parseInt((($('#f-bot-level') || {}).value || '1'), 10);
+    var dept = ($('#f-bot-dept') || {}).value || DB.departments[0].name;
+    var reportsTo = ($('#f-bot-reports') || {}).value || null;
+    var bio = (($('#f-bot-bio') || {}).value || '').trim();
+    var emp = {
+      id: uid('bot'), name: name.slice(0, 16), role: title, title: title,
+      level: Math.max(1, Math.min(5, level || 1)), reportsTo: reportsTo || null,
+      look: S.botDraft || randomLook(), dept: dept, status: 'idle',
+      joined: new Date().toISOString().slice(0, 10),
+      bio: bio || '按岗位职责执行任务。', skills: []
+    };
+    DB.employees.push(emp); DB.byId[emp.id] = emp;
+    saveOrg();
+    closeModal();
+    S.view = 'org'; S.subject = { type: 'employee', id: emp.id };
+    render();
+    toast('已创建 ' + emp.name + ' · ' + emp.title);
+  }
+  function createBotFromAI(spec) {
+    if (!spec || !spec.name) return null;
+    if (DB.employees.some(function (e) { return e.name === spec.name })) return null;
+    var dept = spec.dept;
+    if (!DB.departments.some(function (d) { return d.name === dept })) dept = DB.departments[0].name;
+    var reports = null;
+    DB.employees.forEach(function (e) {
+      if (!reports && (e.name === spec.reportsTo || e.id === spec.reportsTo)) reports = e;
+    });
+    var emp = {
+      id: uid('bot'), name: spec.name.slice(0, 16), role: spec.title || 'AI 员工', title: spec.title || '执行',
+      level: Math.max(1, Math.min(5, parseInt(spec.level, 10) || 1)), reportsTo: reports ? reports.id : null,
+      look: randomLook(), dept: dept, status: 'idle', joined: new Date().toISOString().slice(0, 10),
+      bio: spec.bio || '按岗位职责执行任务。', skills: []
+    };
+    DB.employees.push(emp); DB.byId[emp.id] = emp;
+    saveOrg();
+    return emp;
+  }
+
   function setSendMode(mode) {
     var b = $('#composer-wrap .pv-send');
     if (!b) return;
@@ -1906,6 +2428,136 @@
     toast('已停止生成');
   }
 
+  /* ================= task execution ================= */
+  var EXEC_BUSY = {}, execQueue = [], execPumping = false;
+
+  function addAction(empId, act, text, taskId) {
+    var list = conv(empId);
+    list.push({ from: empId, kind: 'action', act: act, text: text, time: now(), task: taskId || '' });
+    saveConv(empId);
+    return list[list.length - 1];
+  }
+  function refreshIfViewing(empId) {
+    if (isChat() && convId() === empId) { renderCenter(); scrollChat(); }
+    renderLeft();
+  }
+  function parseExec(text) {
+    var steps = [], report = '', other = [];
+    String(text || '').split('\n').forEach(function (line) {
+      var m = /^\s*\[\[STEP\]\]\s*(.+)$/.exec(line);
+      if (m) { steps.push(m[1].trim()); return }
+      var r = /^\s*\[\[REPORT\]\]\s*(.+)$/.exec(line);
+      if (r) { report = r[1].trim(); return }
+      if (line.trim()) other.push(line.trim());
+    });
+    return { steps: steps, report: report, other: other };
+  }
+  function execSystem(emp, t) {
+    var proj = DB.projectById(t.project);
+    return aiContext(emp.id) + '\n\n' +
+      '【本轮是执行回合，不是聊天】\n' +
+      '你现在在自己的工位上真正做这件事。不要寒暄、不要复述任务、不要征求同意。\n' +
+      '只输出 3–5 行动作，每行严格以 [[STEP]] 开头，写清：做了什么、依据什么、产出什么。\n' +
+      '最后一行严格以 [[REPORT]] 开头，一句话写验收结论（尽量可量化）。\n' +
+      '除了 [[STEP]] 和 [[REPORT]] 行，不要输出任何其他内容。\n' +
+      '任务：' + t.name + '｜项目：' + (proj ? proj.name : '未归属') + '｜截止：' + (t.due || '待排期') + '｜目标：' + (proj ? proj.goal : '');
+  }
+  function notifyReviewer(t, emp) {
+    var to = t.by || emp.reportsTo || 'ceo';
+    if (!DB.byId[to] || to === emp.id) to = 'ceo';
+    conv(to).push({
+      from: emp.id, kind: 'action', act: 'submit',
+      text: '「' + t.name + '」已提交审核：' + (t.report || ''), time: now(), task: t.id
+    });
+    saveConv(to);
+  }
+  function runTask(taskId) {
+    var t = DB.taskById(taskId);
+    if (!t || t.status === 'done' || t.executing || EXEC_BUSY[taskId]) return Promise.resolve(false);
+    var emp = DB.byId[t.assignee];
+    if (!emp) return Promise.resolve(false);
+    if (!aiReady()) { toast('执行任务需要先连接 Agnes'); return Promise.resolve(false); }
+    EXEC_BUSY[taskId] = true;
+    t.executing = true;
+    if (t.status === 'pending' || t.status === 'blocked') t.status = 'running';
+    if (t.pct < 5) t.pct = 5;
+    addAction(emp.id, 'claim', '领取「' + t.name + '」，开始执行。', t.id);
+    saveTasks(); refreshIfViewing(emp.id);
+
+    var proj = DB.projectById(t.project) || {};
+    var user = '执行任务：' + t.name + '\n项目：' + (proj.name || '未归属') +
+      '\n目标：' + (proj.goal || '') + '\n截止：' + (t.due || '待排期') +
+      '\n\n现在给出你的执行动作。';
+    return aiRaw(execSystem(emp, t), [{ role: 'user', content: user }], null, null)
+      .then(function (text) {
+        var out = parseExec(text);
+        t.executing = false; EXEC_BUSY[taskId] = false;
+        if (!out.steps.length) throw new Error('模型没有输出可执行动作');
+        out.steps.slice(0, 6).forEach(function (step) { addAction(emp.id, 'step', step, t.id) });
+        var report = out.report || out.steps[out.steps.length - 1];
+        t.report = report;
+        t.status = 'review';
+        t.pct = Math.max(t.pct, 78);
+        t.assignment = {
+          status: 'delivered', requestId: 'task:' + t.id,
+          attempts: (t.assignment && t.assignment.attempts) || 1,
+          updatedAt: Date.now(), error: ''
+        };
+        addAction(emp.id, 'submit', '提交审核：' + report, t.id);
+        recalcProject(t.project);
+        saveTasks();
+        notifyReviewer(t, emp);
+        refreshIfViewing(emp.id);
+        render();
+        toast(emp.name + ' 已交付「' + t.name + '」，等待验收');
+        return true;
+      })
+      .catch(function (e) {
+        t.executing = false; EXEC_BUSY[taskId] = false;
+        var why = /可执行动作/.test((e && e.message) || '')
+          ? '模型这次没给出可执行步骤，点「重新执行」再试一次'
+          : aiExplain(e);
+        addAction(emp.id, 'block', '执行受阻：' + why, t.id);
+        t.status = 'blocked'; t.note = why;
+        saveTasks(); refreshIfViewing(emp.id);
+        toast('「' + t.name + '」执行受阻：' + why);
+        return false;
+      });
+  }
+  function queueTask(taskId) {
+    if (execQueue.indexOf(taskId) >= 0 || EXEC_BUSY[taskId]) return;
+    execQueue.push(taskId);
+    pumpExec();
+  }
+  function pumpExec() {
+    if (execPumping) return;
+    var id = execQueue.shift();
+    if (!id) return;
+    execPumping = true;
+    runTask(id).then(function () {
+      execPumping = false;
+      setTimeout(pumpExec, 280);
+    });
+  }
+  function approveTask(id) {
+    var t = DB.taskById(id); if (!t) return;
+    t.review = (t.review || '').trim() || '验收通过';
+    t.status = 'done'; t.pct = 100;
+    var emp = DB.byId[t.assignee];
+    if (emp) addAction(emp.id, 'done', '「' + t.name + '」验收通过，已归档。', t.id);
+    recalcProject(t.project); saveTasks(); render();
+    toast('已验收：' + t.name);
+  }
+  function rejectTask(id) {
+    var t = DB.taskById(id); if (!t) return;
+    t.review = (t.review || '').trim() || '需要返工';
+    t.status = 'running'; t.executing = false;
+    var emp = DB.byId[t.assignee];
+    if (emp) addAction(emp.id, 'ask', '「' + t.name + '」被打回：' + t.review + '，重新执行。', t.id);
+    saveTasks(); render();
+    queueTask(id);
+  }
+
   function streamReply(empId, chat, list, mentions) {
     busyId = empId; S.busy = true; S.stopped = false;
     chat.insertAdjacentHTML('beforeend', streamingHTML(empId));
@@ -1926,8 +2578,10 @@
     scrollChat();
     aiStream(empId, function (full) { acc = full; paint(); scrollChat() }, think)
       .then(function (full) {
-        var parsed = parseTasks(full || acc);
+        var parsed = parseGroupReply(full || acc);
         var made = commitTasks(parsed.specs, empId, mentions);
+        if (parsed.groups.length) parsed.groups.forEach(createGroupFromAI);
+        if (parsed.bots.length) parsed.bots.forEach(createBotFromAI);
         var msg = { from: empId, text: parsed.text || '（空回复）', time: now() };
         if (made.length) msg.tasks = made;
         list.push(msg);
@@ -1974,6 +2628,7 @@
       mask.addEventListener('click', function (e) { if (e.target === mask) closeModal() });
     }
     var modal = $('#modal');
+    if (kind === 'bot-new') S.botDraft = randomLook();
     if (kind === 'task') {
       modal.innerHTML = '<h3>新建任务</h3><p>创建后会出现在任务看板与所属项目里。</p>' +
         '<div class="cb-field"><label>任务名称</label><input id="f-name" placeholder="例如：组织关系图交互"></div>' +
@@ -2003,6 +2658,42 @@
         '<div class="cb-field"><label>正文 · 支持 Markdown</label><textarea id="f-doc-body" rows="10" class="cb-doc-editor" placeholder="# 标题"></textarea></div>' +
         '<div class="cb-modal-foot"><button type="button" data-act="modal:close">取消</button>' +
         '<button type="button" class="primary" data-act="modal:create-doc">创建</button></div>';
+    } else if (kind === 'bot-new') {
+      var lvOpts = [5, 4, 3, 2, 1].map(function (n) {
+        return '<option value="' + n + '"' + (n === 2 ? ' selected' : '') + '>L' + n + ' · ' + LEVELS[n].name + '</option>';
+      }).join('');
+      var deptOpts = DB.departments.map(function (d) {
+        return '<option value="' + esc(d.name) + '">' + esc(d.name) + '</option>';
+      }).join('');
+      var repOpts = '<option value="">无（直接向老板汇报）</option>' + DB.employees.map(function (e) {
+        return '<option value="' + e.id + '">' + esc(e.name) + ' · ' + esc(e.title || e.role) + '</option>';
+      }).join('');
+      modal.innerHTML = '<h3>新建 Bot</h3><p>设定岗位与级别，它会立刻加入组织、可被派活并进入群聊。</p>' +
+        '<div class="cb-bot-preview"><span id="bot-look-preview">' + botMark({ id: 'draft', look: S.botDraft }, 56) + '</span>' +
+        '<button type="button" class="cb-ghost" data-act="botlook">换一个形象</button></div>' +
+        '<div class="cb-field"><label>名字</label><input id="f-bot-name" placeholder="例如：Data AI" maxlength="16"></div>' +
+        '<div class="cb-field"><label>岗位</label><input id="f-bot-title" placeholder="例如：数据分析师" maxlength="20"></div>' +
+        '<div class="cb-row"><div class="cb-field"><label>级别</label><select id="f-bot-level">' + lvOpts + '</select></div>' +
+        '<div class="cb-field"><label>部门</label><select id="f-bot-dept">' + deptOpts + '</select></div></div>' +
+        '<div class="cb-field"><label>汇报对象</label><select id="f-bot-reports">' + repOpts + '</select></div>' +
+        '<div class="cb-field"><label>职责</label><textarea id="f-bot-bio" rows="2" placeholder="它负责什么、交付什么"></textarea></div>' +
+        '<div class="cb-modal-foot"><button type="button" data-act="modal:close">取消</button>' +
+        '<button type="button" class="primary" data-act="modal:create-bot">创建</button></div>';
+    } else if (kind === 'group-new') {
+      modal.innerHTML = '<h3>新建群聊</h3><p>把相关 Bot 拉进群，由负责人统一接指令并拆解执行。</p>' +
+        '<div class="cb-field"><label>群名</label><input id="f-group-name" placeholder="例如：官网改版攻坚" maxlength="20"></div>' +
+        '<div class="cb-field"><label>目的</label><input id="f-group-purpose" placeholder="一句话说明这个群要解决什么"></div>' +
+        '<div class="cb-field"><label>成员 · 至少 2 名</label><div id="f-group-members" class="cb-checks">' +
+        DB.employees.map(function (e, idx) {
+          return '<label class="cb-check"><input type="checkbox" value="' + e.id + '"' + (idx < 4 ? ' checked' : '') + '>' +
+            botMark(e, 18) + '<span>' + esc(e.name) + '</span>' + levelTag(e) + '</label>';
+        }).join('') + '</div></div>' +
+        '<div class="cb-field"><label>负责人</label><select id="f-group-lead">' +
+        DB.employees.map(function (e) {
+          return '<option value="' + e.id + '"' + (e.id === 'ceo' ? ' selected' : '') + '>' + esc(e.name) + ' · ' + esc(e.title || e.role) + '</option>';
+        }).join('') + '</select></div>' +
+        '<div class="cb-modal-foot"><button type="button" data-act="modal:close">取消</button>' +
+        '<button type="button" class="primary" data-act="modal:create-group">创建</button></div>';
     } else {
       modal.innerHTML = '<h3>新建项目</h3><p>新项目会出现在左栏与项目视图。</p>' +
         '<div class="cb-field"><label>项目名称</label><input id="f-name" placeholder="例如：移动端适配"></div>' +
@@ -2126,9 +2817,9 @@
     toast('已创建项目：' + name);
   }
   function resetAll() {
-    clearConv(); clearTasks(); clearDocs();
+    clearConv(); clearTasks(); clearDocs(); clearOrg();
     var snap = JSON.parse(JSON.stringify(SEED_SNAPSHOT));
-    ['employees', 'departments', 'projects', 'tasks', 'docs'].forEach(function (k) {
+    ['employees', 'departments', 'projects', 'tasks', 'docs', 'groups'].forEach(function (k) {
       DB[k] = snap[k];
     });
     DB.byId = {};
@@ -2221,6 +2912,7 @@
     else if (a === 'open' && b === 'emp') openEmp(c);
     else if (a === 'open' && b === 'project') openProject(c);
     else if (a === 'open' && b === 'dept') openDept(c);
+    else if (a === 'open' && b === 'group') openGroup(c);
     else if (a === 'open' && b === 'task') openTask(c);
     else if (a === 'toggle' && b === 'dept') { S.deptOpen[c] = !S.deptOpen[c]; renderLeft() }
     else if (a === 'collapse' && b === 'dept') { S.deptCollapsed = !S.deptCollapsed; renderLeft() }
@@ -2238,6 +2930,9 @@
       render();
     }
     else if (a === 'tstatus') { setTaskStatus(parts[1], parts[2]) }
+    else if (a === 'taskrun') { runTask(b) }
+    else if (a === 'taskapprove') { approveTask(b) }
+    else if (a === 'taskreject') { rejectTask(b) }
     else if (a === 'send') send();
     else if (a === 'stop') stopStream();
     else if (a === 'report') makeReport(b);
@@ -2247,6 +2942,11 @@
     else if (a === 'modal' && b === 'create-task') createTask();
     else if (a === 'modal' && b === 'create-project') createProject();
     else if (a === 'modal' && b === 'doc-new') openModal('doc-new');
+    else if (a === 'modal' && b === 'bot-new') openModal('bot-new');
+    else if (a === 'modal' && b === 'create-bot') createBot();
+    else if (a === 'modal' && b === 'group-new') openModal('group-new');
+    else if (a === 'modal' && b === 'create-group') createGroup();
+    else if (a === 'botlook') shuffleBotLook();
     else if (a === 'modal' && b === 'create-doc') createDoc();
     else if (a === 'modal' && b === 'save-doc') saveDoc();
     else if (a === 'editdoc') { S.editDocId = b; openModal('doc-edit') }
@@ -2375,6 +3075,7 @@
     loadConv();
     loadTasks();
     loadDocs();
+    loadOrg();
     $('#left-search').innerHTML = searchBox('搜索员工、部门、项目…');
     render();
     document.body.setAttribute('data-ready', '1');

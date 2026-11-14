@@ -477,3 +477,66 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
 
 /* 文档编辑器：正文改为等宽、更高，便于直接改 Markdown */
 .cb-field textarea.cb-doc-editor{min-height:200px;font:11px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre;overflow-wrap:normal;overflow-x:auto}
+
+/* ===== Bot 几何头像（DSHBot 风格） ===== */
+.cb-mark{display:inline-block;flex:none;vertical-align:middle;border-radius:27%;overflow:visible}
+.cb-avatar.cb-mark{display:inline-block;width:auto;height:auto;border-radius:27%;background:none;overflow:visible}
+.cb-lv{display:inline-block;margin-left:3px;padding:0 3.5px;border-radius:4px;font-size:7.5px;line-height:12px;font-weight:700;letter-spacing:.02em;background:rgba(64,116,255,.13);color:var(--bt-accent);vertical-align:1px;white-space:nowrap}
+
+/* 成员行：名字 + 级别 + 当前动作 */
+.pv-left .cb-employee{align-items:center}
+.cb-employee-name{flex:none;max-width:82px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cb-employee-do{margin-left:auto;min-width:0;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px;color:var(--bt-ink-3);text-align:right}
+.cb-employee.is-current .cb-employee-do{color:var(--bt-accent)}
+
+/* 群聊列表 */
+.cb-room-list{display:flex;flex-direction:column;gap:1px}
+.cb-room{display:flex;align-items:center;gap:6px;width:100%;padding:6px 5px;border:0;border-radius:8px;background:none;color:inherit;text-align:left;cursor:pointer;font:inherit}
+.cb-room:hover{background:var(--bt-hover)}
+.cb-room.is-current{background:var(--bt-accent-soft)}
+.cb-room-marks{display:flex;flex:none;align-items:center}
+.cb-room-marks .cb-mark{margin-right:-6px;box-shadow:0 0 0 1.5px var(--bt-main)}
+.cb-room-marks .cb-mark:last-child{margin-right:0}
+.cb-room-copy{display:flex;flex-direction:column;min-width:0;flex:1;gap:1px}
+.cb-room-copy strong{font-size:10.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cb-room-copy small{font-size:8.5px;color:var(--bt-ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* 群聊头部 */
+.cb-room-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;margin-bottom:10px;border:1px solid var(--bt-line);border-radius:12px;background:var(--bt-card)}
+.cb-room-head-copy{display:flex;flex-direction:column;min-width:130px;gap:1px}
+.cb-room-head-copy strong{font-size:12px}
+.cb-room-head-copy small{font-size:9px;color:var(--bt-ink-3)}
+.cb-room-head-marks{display:flex;gap:3px;margin-left:auto}
+.cb-room-mark{border:0;background:none;padding:0;cursor:pointer;line-height:0;border-radius:8px}
+.cb-room-head-meta{width:100%;font-size:8.5px;line-height:15px;color:var(--bt-ink-3);border-top:1px dashed var(--bt-line);padding-top:6px}
+
+/* 动作流 */
+.pv-msg.is-action{align-items:flex-start;margin:2px 0}
+.pv-msg.is-action .pv-msg-name{display:flex;align-items:center;gap:2px}
+.cb-act{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px;padding:7px 10px;border:1px solid var(--bt-line);border-radius:12px;background:var(--bt-card);max-width:100%}
+.cb-act-tag{flex:none;font-size:8px;line-height:14px;font-weight:700;padding:0 5px;border-radius:5px;background:rgba(64,116,255,.12);color:var(--bt-accent);white-space:nowrap}
+.cb-act-text{flex:1 1 200px;min-width:0;font-size:11px;line-height:17px;color:var(--bt-ink)}
+.cb-act-task{flex:none;margin-left:auto;border:0;background:none;padding:0;font:inherit;font-size:8.5px;color:var(--bt-accent);cursor:pointer;white-space:nowrap}
+.cb-act-time{margin-left:6px;font-size:8px;color:var(--bt-ink-3)}
+.cb-act-claim .cb-act-tag{background:rgba(38,158,102,.14);color:#1f9a63}
+.cb-act-submit .cb-act-tag{background:rgba(206,138,32,.16);color:#b9761a}
+.cb-act-done .cb-act-tag{background:rgba(38,158,102,.2);color:#17824f}
+.cb-act-block .cb-act-tag{background:rgba(205,62,52,.14);color:#c9412f}
+.cb-act-ask .cb-act-tag{background:rgba(134,96,220,.15);color:#6a46de}
+
+/* 新建 Bot / 群聊表单 */
+.cb-bot-preview{display:flex;align-items:center;gap:12px;margin:2px 0 14px}
+.cb-bot-preview .cb-mark{filter:drop-shadow(0 4px 8px rgba(0,0,0,.12))}
+.cb-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cb-checks{display:grid;grid-template-columns:1fr 1fr;gap:3px;max-height:172px;overflow:auto;padding:3px;border:1px solid var(--bt-line);border-radius:9px}
+.cb-check{display:flex;align-items:center;gap:5px;padding:4px 5px;border-radius:7px;font-size:10px;cursor:pointer}
+.cb-check:hover{background:var(--bt-hover)}
+.cb-check input{margin:0;flex:none}
+.cb-check span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* 成员行与左栏在窄容器内的收束 */
+.cb-member-row .cb-member-copy{min-width:0;flex:1}
+.cb-member-row .cb-member-copy strong{display:flex;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cb-member-row .cb-employee-do{flex:none;max-width:66px}
+.cb-employee-name{max-width:92px;font-size:10px}
+.cb-employee-do{max-width:62px;font-size:7.5px}
