@@ -35719,9 +35719,7 @@ function CEOWorkspace({ useRoster, useSessions }) {
   const roster = useRoster((value) => value);
   const current = useSessions((list) => Object.values(list.byId ?? {}).find((session) => (session?.retainedBy?.mainView ?? 0) > 0)?.id ?? null);
   const org = roster.organization ?? {};
-  const mainBot = roster.byId?.[roster.mainBotId];
-  const mainPart = mainBot ? currentPart(mainBot) : roster.mainBotId;
-  if (current !== mainPart) return null;
+  if (!current) return null;
   const employees = Array.isArray(org.employees) ? org.employees : Object.values(roster.byId ?? {}).map((bot) => ({ id: bot.id, name: bot.name, role: bot.role }));
   const departments = Array.isArray(org.departments) ? org.departments : [];
   const projects = Array.isArray(org.projects) ? org.projects : [];
