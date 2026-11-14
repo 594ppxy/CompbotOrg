@@ -1641,6 +1641,43 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
 .cb-task-editor .cb-te-row{flex-wrap:wrap}
 .cb-task-editor .cb-te-row label{width:auto;flex:none}
 
+/* ============ @ mentions / # references ============ */
+#composer-wrap{position:relative}
+.cb-mention-pop{position:absolute;left:14px;right:14px;bottom:calc(100% + 6px);z-index:40;display:none;max-height:252px;overflow:auto;padding:5px;border:1px solid var(--bt-line);border-radius:12px;background:var(--bt-card);box-shadow:0 12px 32px rgba(0,0,0,.16)}
+.cb-mention-pop.is-open{display:block}
+.cb-mention-head{display:flex;align-items:center;gap:8px;padding:5px 7px 7px;font-size:9px;color:var(--bt-ink-3);border-bottom:1px solid var(--bt-line);margin-bottom:4px}
+.cb-mention-head b{color:var(--bt-ink);font-size:10px;font-weight:650}
+.cb-mention-head span{margin-left:auto;text-align:right}
+.cb-mention-item{display:flex;align-items:center;gap:8px;width:100%;padding:6px 7px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--bt-ink);font:inherit;font-size:10px;text-align:left;cursor:pointer}
+.cb-mention-item:hover,.cb-mention-item.is-current{background:var(--bt-hover);border-color:color-mix(in srgb,var(--bt-accent) 45%,transparent)}
+.cb-mention-ico{flex:none;width:20px;height:20px;display:grid;place-items:center;border-radius:6px;background:var(--bt-hover);color:var(--bt-accent);font-size:10px;font-weight:650}
+.cb-mention-name{flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.cb-mention-sub{margin-left:auto;color:var(--bt-ink-3);font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+.cb-mention{display:inline;padding:1px 4px;border-radius:5px;background:color-mix(in srgb,var(--bt-accent) 12%,transparent);color:var(--bt-accent);font-weight:600;cursor:pointer}
+.cb-mention:hover{text-decoration:underline}
+.cb-ref{display:inline;padding:1px 4px;border-radius:5px;background:var(--bt-hover);color:var(--bt-ink-2);font-weight:600;cursor:pointer}
+.cb-ref:hover{color:var(--bt-accent);text-decoration:underline}
+.cb-cc{display:block;margin:-2px 0 6px;padding-bottom:5px;border-bottom:1px dashed var(--bt-line);font-size:9px;color:var(--bt-ink-3)}
+.cb-display-none{display:none}
+.cb-dispatch{display:flex;align-items:center;gap:6px;margin-top:8px;padding:7px 9px;border:1px solid color-mix(in srgb,var(--bt-green) 40%,transparent);border-radius:9px;background:color-mix(in srgb,var(--bt-green) 7%,transparent);font-size:10px;color:var(--bt-ink-2);cursor:pointer}
+.cb-dispatch span{margin-left:auto;color:var(--bt-green);font-size:9px;flex:none}
+.cb-dispatch:hover{border-color:var(--bt-green)}
+@media(max-width:700px){.cb-mention-pop{left:8px;right:8px}}
+
+/* 交付凭据 */
+.cb-te-col{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.cb-te-col label{font-size:9px;color:var(--bt-ink-2);font-weight:600}
+.cb-te-col label small{color:var(--bt-ink-3);font-weight:400;margin-left:4px}
+.cb-te-col textarea{width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid var(--bt-line);border-radius:8px;background:var(--bt-main);color:var(--bt-ink);font:inherit;font-size:10px;line-height:16px;resize:vertical;min-height:38px}
+.cb-te-col textarea:focus{outline:none;border-color:var(--bt-accent)}
+.cb-te-col textarea::placeholder{color:var(--bt-ink-3)}
+.cb-te-delivery{display:flex;align-items:center;gap:6px;padding-top:7px;border-top:1px dashed var(--bt-line);font-size:9px;color:var(--bt-ink-3)}
+.cb-te-delivery b{color:var(--bt-green);font-weight:650}
+.cb-te-delivery small{margin-left:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52%}
+
+/* 文档编辑器：正文改为等宽、更高，便于直接改 Markdown */
+.cb-field textarea.cb-doc-editor{min-height:200px;font:11px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre;overflow-wrap:normal;overflow-x:auto}
+
 </style>
 </head><body data-cb-inspector="on">
   <div class="pv-app">
@@ -1663,7 +1700,9 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
 /* CompBotOrg workbench — state-driven UI.
    Views: org / projects / tasks / knowledge / settings / search
    Every navigation actually swaps the left column, the centre view and the inspector.
-   Chat replies are rule-based demo responses (no model API is connected). */
+   Chat replies come exclusively from Agnes (OpenAI-compatible chat/completions, SSE).
+   There is no local rule-based reply and no intent-keyword fallback: without an API
+   key the composer refuses to send and points at Settings > Model. */
 (function () {
   'use strict';
 
@@ -1763,6 +1802,8 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
   };
 
   DB.docs.forEach(function (d) { SEED_DOC_IDS[d.id] = true });
+  var DOC_DIRTY = {};
+  var SEED_DOC_BODY = JSON.parse(JSON.stringify(DOC_BODY));
 
   DB.byId = {};
   DB.employees.forEach(function (e) { DB.byId[e.id] = e });
@@ -1779,6 +1820,19 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     blocked: { label: '阻塞', cls: 'cb-dot-blocked', badge: 'cb-badge-red' },
     done: { label: '已完成', cls: 'cb-dot-done', badge: 'cb-badge-green' }
   };
+  /* 与后端 organization.js 的 TASK_TRANSITIONS 保持一致 */
+  var TASK_TRANSITIONS = {
+    pending: ['pending', 'running', 'blocked'],
+    running: ['running', 'review', 'blocked'],
+    review: ['review', 'running', 'blocked', 'done'],
+    blocked: ['blocked', 'pending', 'running'],
+    done: ['done', 'review']
+  };
+  var DELIVERY = { unassigned: '未指派', ready: '待委派', dispatched: '已派出', acknowledged: '已确认', failed: '送达失败' };
+  function deliveryLabel(t) {
+    var a = t.assignment;
+    return a ? (DELIVERY[a.status] || a.status) : '待委派';
+  }
   var EMP_STATUS = {
     online: { label: '在线', cls: 'cb-dot-online', tone: 'green' },
     running: { label: '工作中', cls: 'cb-dot-running', tone: 'green' },
@@ -1853,7 +1907,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     try {
       var extra = DB.tasks.filter(function (t) { return SEED_TASK_IDS.indexOf(t.id) < 0 });
       var changed = DB.tasks.filter(function (t) { return SEED_TASK_IDS.indexOf(t.id) >= 0 }).map(function (t) {
-        return { id: t.id, status: t.status, pct: t.pct };
+        return { id: t.id, status: t.status, pct: t.pct, report: t.report || '', review: t.review || '', assignment: t.assignment || null };
       });
       localStorage.setItem(TASK_STORE, JSON.stringify({ extra: extra, changed: changed }));
     } catch (e) {}
@@ -1865,7 +1919,11 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
       var o = JSON.parse(raw);
       (o.changed || []).forEach(function (c) {
         var t = DB.taskById(c.id);
-        if (t) { t.status = c.status; t.pct = c.pct }
+        if (t) {
+          t.status = c.status; t.pct = c.pct;
+          t.report = c.report || ''; t.review = c.review || '';
+          if (c.assignment) t.assignment = c.assignment;
+        }
       });
       (o.extra || []).forEach(function (t) {
         if (!DB.taskById(t.id) && DB.projectById(t.project) && DB.byId[t.assignee]) DB.tasks.push(t);
@@ -1877,22 +1935,41 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
 
   function saveDocs() {
     try {
-      /* 只存自动生成的文档，种子文档的正文在代码里 */
+      /* 新增文档存整条记录；种子文档被编辑过也要把覆盖值存下来，
+         否则刷新后编辑内容会无声丢失。旧格式（纯数组）仍可读。 */
       var extra = DB.docs.filter(function (d) { return !SEED_DOC_IDS[d.id] }).map(function (d) {
         return { doc: d, body: DOC_BODY[d.id] || '' };
       });
-      localStorage.setItem(DOC_STORE, JSON.stringify(extra));
+      var edits = DB.docs.filter(function (d) { return SEED_DOC_IDS[d.id] && DOC_DIRTY[d.id] })
+        .map(function (d) {
+          return { id: d.id, title: d.title, desc: d.desc, size: d.size, updated: d.updated, body: DOC_BODY[d.id] || '' };
+        });
+      localStorage.setItem(DOC_STORE, JSON.stringify({ extra: extra, edits: edits }));
     } catch (e) {}
   }
   function loadDocs() {
     try {
       var raw = localStorage.getItem(DOC_STORE);
       if (!raw) return;
-      JSON.parse(raw).forEach(function (it) {
+      var o = JSON.parse(raw);
+      var arr = Array.isArray(o) ? o : (o.extra || []);
+      arr.forEach(function (it) {
         if (!it || !it.doc || DB.docs.some(function (x) { return x.id === it.doc.id })) return;
         if (SEED_DOC_IDS[it.doc.id]) return;
         DB.docs.unshift(it.doc);
         DOC_BODY[it.doc.id] = it.body || '';
+      });
+      var edits = Array.isArray(o) ? [] : (o.edits || []);
+      edits.forEach(function (it) {
+        var d = null;
+        DB.docs.forEach(function (x) { if (x.id === it.id) d = x });
+        if (!d) return;
+        if (it.title) d.title = it.title;
+        if (it.desc) d.desc = it.desc;
+        if (it.size) d.size = it.size;
+        if (it.updated) d.updated = it.updated;
+        DOC_BODY[d.id] = it.body || '';
+        DOC_DIRTY[d.id] = true;
       });
     } catch (e) {}
   }
@@ -1928,10 +2005,18 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     theme: 'light',
     density: 'comfortable',
     notify: true,
+    dailyDigest: false,
     messages: {},
+    drafts: {},
+    editDocId: null,
+    docSort: 'updated',
+    deptSort: false,
     busy: false,
     newTaskProject: 'p1',
-    settingsSection: 'model'
+    settingsSection: 'model',
+    draftMentions: [],
+    draftRefs: [],
+    mention: null
   };
 
   /* ================= model connection ================= */
@@ -1955,6 +2040,12 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
         ['base', 'model', 'temp', 'max'].forEach(function (k) {
           if (o[k] !== undefined && o[k] !== null && o[k] !== '') AI[k] = o[k];
         });
+        /* 旧版本把 API Key 明文写进这份配置。升级后必须主动抹掉，否则用户
+           即使不进设置页保存，Key 也会一直躺在 localStorage 里。 */
+        if (Object.prototype.hasOwnProperty.call(o, 'key')) {
+          delete o.key;
+          localStorage.setItem(AI_STORE, JSON.stringify(o));
+        }
       }
       AI.key = sessionStorage.getItem(AI_KEY_STORE) || '';
     } catch (e) {}
@@ -2029,6 +2120,12 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     L.push('[[TASK]]任务名|负责人姓名|所属项目名');
     L.push('可以连续多行。任务名要具体可执行、不超过 14 个字；负责人姓名必须原样取自上面的成员列表；项目名必须取自上面的项目列表。');
     L.push('系统会解析这些行并在项目里真实创建任务，所以只有真的要交办时才输出；闲聊、反问、汇报进度时一律不要输出。');
+    L.push('');
+    L.push('【@ 点名】');
+    L.push('老板的消息里出现 @姓名 或标注「本条点名了」时，表示这件事点名了对应同事。');
+    L.push('回应里要明确回应被点名的人；需要交办时，[[TASK]] 的负责人优先从被点名的人里选，多个被点名者就依次分配。');
+    L.push('被点名的人会收到消息抄送和派单通知，所以不要只口头说「我去安排」而不输出 [[TASK]]。');
+    L.push('禁止点名成员列表之外的人。');
     return L.join('\n');
   }
 
@@ -2040,6 +2137,10 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
       var role = m.from === 'me' ? 'user' : 'assistant';
       var body = m.text;
       if (!body) return;
+      if (m.cc) body = '[抄送自 ' + empName(m.cc) + ' 的会话，仅供知悉] ' + body;
+      if (m.from === 'me' && m.mentions && m.mentions.length) {
+        body += '\n[本条点名了：' + m.mentions.map(empName).join('、') + '。交办时优先指派给他们]';
+      }
       if (out.length && out[out.length - 1].role === role) out[out.length - 1].content += '\n' + body;
       else out.push({ role: role, content: body });
     });
@@ -2052,14 +2153,25 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
       var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
       abortCtl = ctrl;
       var timer = setTimeout(function () { if (ctrl) ctrl.abort() }, 90000);
-      var payload = {
-        model: AI.model,
-        temperature: Number(AI.temp) || 0.6,
-        max_tokens: Number(AI.max) || 900,
-        stream: true,
-        messages: [{ role: 'system', content: aiContext(empId) }].concat(aiMessages(empId))
-      };
-      fetch(aiUrl(), {
+      var url, payload;
+      try {
+        url = aiUrl();
+        payload = {
+          model: AI.model,
+          temperature: Number(AI.temp) || 0.6,
+          max_tokens: Number(AI.max) || 900,
+          stream: true,
+          messages: [{ role: 'system', content: aiContext(empId) }].concat(aiMessages(empId))
+        };
+      } catch (e) {
+        /* aiUrl() 可能因地址不是 HTTPS 而抛错。若让异常从 executor 直接冒出去，
+           会绕过挂在 fetch 链上的清理，留下 90 秒定时器和残留 controller。 */
+        clearTimeout(timer);
+        abortCtl = null;
+        reject(e);
+        return;
+      }
+      fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.key },
         body: JSON.stringify(payload),
@@ -2187,7 +2299,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
   }
   function aiClear() {
     AI.key = ''; AI.state = 'idle'; AI.err = ''; aiSave(); render();
-    toast('已清除 Key，回到本地演示回复');
+    toast('已清除 Key，对话已停用；重新填入即可继续');
   }
 
   function parseTasks(text) {
@@ -2205,14 +2317,19 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     };
   }
 
-  function commitTasks(specs, fromId) {
+  function commitTasks(specs, fromId, mentions) {
     var made = [];
+    var queue = (mentions || []).slice();
     (specs || []).forEach(function (s) {
       var owner = null;
       DB.employees.forEach(function (e) {
         if (owner) return;
         if (e.name === s.owner || e.role === s.owner || e.id === s.owner) owner = e;
       });
+      /* 老板点名了人，但模型没写清负责人时，按点名顺序补上 */
+      if (!owner) {
+        while (queue.length && !owner) owner = DB.byId[queue.shift()] || null;
+      }
       if (!owner) return;
       var proj = null;
       DB.projects.forEach(function (p) {
@@ -2224,9 +2341,13 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
       var dup = DB.tasks.some(function (t) { return t.project === proj.id && t.name === s.name });
       if (dup) return;
       var t = { id: uid('t'), name: s.name, project: proj.id, assignee: owner.id, status: 'pending', pct: 0, due: '待排期', by: fromId };
+      /* 与后端 setTaskDelivery 对齐：派出去的活带一条可审计的送达回执 */
+      t.assignment = { status: 'dispatched', requestId: 'task:' + t.id, attempts: 1, updatedAt: Date.now(), error: '' };
+      t.report = ''; t.review = '';
       DB.tasks.push(t);
       if (owner.status === 'idle') owner.status = 'running';
       recalcProject(proj.id);
+      dispatchNotice(t, fromId);
       made.push(t);
     });
     if (made.length) saveTasks();
@@ -2447,7 +2568,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
         '<span class="cb-project-name">' + esc(d.title) + '</span><small class="cb-count">' + d.updated.slice(5) + '</small></button>';
     });
     html += '</div></div>';
-    $('#left-foot').innerHTML = '<button type="button" class="cb-ghost" data-act="toast:演示版不含文件上传">导入文档</button>';
+    $('#left-foot').innerHTML = '<button type="button" class="cb-ghost" data-act="doc:import">导入文档</button>';
     return html;
   }
 
@@ -2468,7 +2589,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
         '<span class="cb-project-icon">·</span><span>' + s.label + flag + '</span></button>';
     });
     html += '</div>';
-    $('#left-foot').innerHTML = '<div class="cb-empty" style="padding:6px">CompBotOrg v1.0 · ' + (aiReady() ? '模型已连接' : '演示') + '</div>';
+    $('#left-foot').innerHTML = '<div class="cb-empty" style="padding:6px">CompBotOrg v1.0 · ' + (aiReady() ? 'Agnes 已连接' : 'Agnes 未连接') + '</div>';
     return html;
   }
 
@@ -2481,10 +2602,13 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     if (isChat()) {
       body.className = 'pv-chat';
       body.innerHTML = chatMessages();
-      if (!host.firstChild) host.innerHTML = composerHTML();
-      else {
-        var inp = host.querySelector('input');
-        if (inp) inp.placeholder = composerPlaceholder();
+      if (!host.firstChild) {
+        host.innerHTML = composerHTML();
+        var ni = composerEl();
+        if (ni) autoGrow(ni);
+      } else {
+        var inp = composerEl();
+        if (inp) { inp.placeholder = composerPlaceholder(); autoGrow(inp) }
       }
       host.style.display = '';
       scrollChat(S.scrollMode !== 'top');
@@ -2513,7 +2637,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
       projects: ['项目', '全部 ' + DB.projects.length + ' 个项目'],
       tasks: ['任务看板', DB.tasks.length + ' 个任务 · ' + DB.tasks.filter(function (t) { return t.status === 'blocked' }).length + ' 个阻塞'],
       knowledge: ['知识库', DB.docs.length + ' 篇文档'],
-      settings: ['设置', aiReady() ? '模型已连接 · ' + AI.model : '模型未连接 · 当前为演示回复'],
+      settings: ['设置', aiReady() ? 'Agnes 已连接 · ' + AI.model : 'Agnes 未连接 · 请填入 API Key'],
       search: ['搜索', S.query ? '“' + esc(S.query) + '” 的结果' : '输入关键词搜索员工、项目、任务和文档']
     };
     var t = titles[S.view] || ['工作台', ''];
@@ -2534,16 +2658,19 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
   function msgHTML(m, i) {
     var mine = m.from === 'me';
     var who = mine ? DB.me : (DB.byId[m.from] || DB.byId.ceo);
-    var body = esc(m.text).replace(/\n/g, '<br>');
+    var body = richTextHTML(m.text);
     var card = m.card ? taskCardHTML(m.card) : '';
     var made = createdTasksHTML(m.tasks);
+    var cc = m.cc ? '<div class="cb-cc">抄送自 ' + esc(empName(m.cc)) + ' 的会话 · 这条消息点名了你</div>' : '';
+    var dsp = m.dispatch ? '<div class="cb-dispatch" data-act="open:task:' + m.dispatch + '">▤ 派单已送达 · ' +
+      esc((DB.taskById(m.dispatch) || {}).name || '任务') + '<span>查看任务 ›</span></div>' : '';
     var errCls = m.err ? ' is-err' : '';
     var stoppedAttr = m.stopped ? ' data-stopped="1"' : '';
     return '<div class="pv-msg ' + (mine ? 'mine' : '') + '"' + stoppedAttr + '>' +
       avatar(who, 'cb-avatar-sm') +
       '<div class="pv-msg-body">' +
       (mine ? '' : '<div class="pv-msg-name">' + esc(who.name) + '<span style="margin-left:6px;opacity:.7">' + esc(m.time || '') + '</span></div>') +
-      '<div class="pv-bubble' + errCls + '">' + body + card + made + '</div>' +
+      '<div class="pv-bubble' + errCls + '">' + cc + body + card + made + dsp + '</div>' +
       '<div class="pv-msg-tools"><button type="button" data-act="copy:' + i + '">复制</button>' +
       (mine ? '' : '<button type="button" data-act="quote:' + i + '">引用</button>') +
       (mine ? '<button type="button" data-act="retry:' + i + '">重发</button>' : '') +
@@ -2566,7 +2693,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
   function aiBanner() {
     if (!isChat()) return '';
     if (!aiReady()) {
-      return '<div class="cb-ai-banner" data-act="openai"><span><b>当前是演示回复</b> · 接上模型后，CEO 和员工会基于真实组织数据实时作答，并自动派活</span><span class="cb-ai-badge">去配置 ›</span></div>';
+      return '<div class="cb-ai-banner" data-act="openai"><span><b>尚未连接 Agnes</b> · 填入 API Key 后，CEO 和员工由模型基于真实组织数据实时作答并自动派活</span><span class="cb-ai-badge">去配置 ›</span></div>';
     }
     if (AI.state === 'bad') {
       return '<div class="cb-ai-banner is-err" data-act="openai"><span><b>模型连接异常</b> · ' + esc(AI.err || '请检查设置') + '</span><span class="cb-ai-badge">去检查 ›</span></div>';
@@ -2602,8 +2729,9 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
   }
   function composerHTML() {
     return '<div class="pv-composer"><span class="pv-clip" data-act="toast:附件功能需要后端存储，暂未接入">📎</span>' +
-      '<textarea data-input="composer" rows="1" placeholder="' + esc(composerPlaceholder()) + '" aria-label="消息"></textarea>' +
-      '<button type="button" class="pv-send" data-act="send" aria-label="发送">➤</button></div>';
+      '<textarea data-input="composer" rows="1" placeholder="' + esc(composerPlaceholder()) + '" aria-label="消息">' + esc(S.drafts[convId()] || '') + '</textarea>' +
+      '<button type="button" class="pv-send" data-act="send" aria-label="发送">➤</button></div>' +
+      '<div id="mention-pop" class="cb-mention-pop"></div>';
   }
   function autoGrow(el) {
     if (!el) return;
@@ -2611,6 +2739,129 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     el.style.height = Math.min(el.scrollHeight, 140) + 'px';
   }
   function composerEl() { return $('#composer-wrap [data-input=composer]') }
+  /* ================= @ mentions / # references ================= */
+  var MENTION_RE = /(^|[\s(（])([@#])([^\s@#]*)$/;
+
+  function mentionCandidates(trigger, q) {
+    var needle = String(q || '').toLowerCase(), out = [];
+    if (trigger === '@') {
+      DB.employees.forEach(function (e) {
+        var hay = (e.name + ' ' + e.role + ' ' + e.dept).toLowerCase();
+        if (!needle || hay.indexOf(needle) >= 0) out.push({ id: e.id, name: e.name, sub: e.dept + ' · ' + e.role, kind: 'emp' });
+      });
+    } else {
+      DB.projects.forEach(function (p) {
+        if (!needle || (p.name + ' 项目').toLowerCase().indexOf(needle) >= 0) out.push({ id: p.id, name: p.name, sub: '项目 · ' + p.pct + '%', kind: 'project' });
+      });
+      DB.tasks.forEach(function (t) {
+        if (!needle || (t.name + ' 任务').toLowerCase().indexOf(needle) >= 0) out.push({ id: t.id, name: t.name, sub: '任务 · ' + ((STATUS[t.status] || {}).label || ''), kind: 'task' });
+      });
+    }
+    return out.slice(0, 8);
+  }
+
+  function mentionPopHTML() {
+    var m = S.mention;
+    if (!m || !m.items.length) return '';
+    return '<div class="cb-mention-head"><b>' + (m.trigger === '@' ? '@ 点名同事' : '# 引用项目 / 任务') + '</b>' +
+      '<span>' + (m.trigger === '@' ? '自动抄送 · 优先派单' : '插入可点链接') + ' · ↑↓ 选择 · Enter 插入</span></div>' +
+      m.items.map(function (it, i) {
+        return '<button type="button" class="cb-mention-item ' + (i === m.index ? 'is-current' : '') + '" data-act="mpick:' + i + '">' +
+          '<span class="cb-mention-ico">' + (it.kind === 'emp' ? esc(it.name.slice(0, 1)) : it.kind === 'project' ? '▤' : '✓') + '</span>' +
+          '<span class="cb-mention-name">' + esc(it.name) + '</span>' +
+          '<span class="cb-mention-sub">' + esc(it.sub) + '</span></button>';
+      }).join('');
+  }
+
+  function syncMentionPop() {
+    var pop = $('#mention-pop'); if (!pop) return;
+    pop.innerHTML = mentionPopHTML();
+    if (S.mention && S.mention.items.length) pop.classList.add('is-open');
+    else pop.classList.remove('is-open');
+    var cur = pop.querySelector('.is-current');
+    if (cur && cur.scrollIntoView) { try { cur.scrollIntoView({ block: 'nearest' }) } catch (e) {} }
+  }
+
+  function closeMention() {
+    if (!S.mention) return;
+    S.mention = null;
+    syncMentionPop();
+  }
+
+  function updateMention(ta) {
+    if (!ta || ta.selectionStart == null) { closeMention(); return }
+    var before = ta.value.slice(0, ta.selectionStart);
+    var m = MENTION_RE.exec(before);
+    if (!m) { closeMention(); return }
+    var items = mentionCandidates(m[2], m[3]);
+    if (!items.length) { closeMention(); return }
+    S.mention = { trigger: m[2], start: ta.selectionStart - m[3].length - 1, q: m[3], items: items, index: 0 };
+    syncMentionPop();
+  }
+
+  function mentionMove(delta) {
+    var m = S.mention; if (!m || !m.items.length) return false;
+    m.index = (m.index + delta + m.items.length) % m.items.length;
+    syncMentionPop();
+    return true;
+  }
+
+  function pickMention(i) {
+    var m = S.mention, ta = composerEl();
+    if (!m || !ta || !m.items[i]) return;
+    var it = m.items[i], pos = ta.selectionStart;
+    var token = m.trigger + it.name + ' ';
+    ta.value = ta.value.slice(0, m.start) + token + ta.value.slice(pos);
+    S.drafts[convId()] = ta.value;
+    var caret = m.start + token.length;
+    try { ta.setSelectionRange(caret, caret) } catch (e) {}
+    if (m.trigger === '@') {
+      if (S.draftMentions.indexOf(it.id) < 0) S.draftMentions.push(it.id);
+    } else if (!S.draftRefs.some(function (r) { return r.id === it.id })) {
+      S.draftRefs.push({ id: it.id, kind: it.kind, name: it.name });
+    }
+    closeMention();
+    autoGrow(ta);
+    ta.focus();
+  }
+
+  /* Render @name / #name as clickable chips. Placeholders keep the generated
+     HTML from being re-matched by a later (shorter) employee name. */
+  function richTextHTML(text) {
+    var out = esc(text || '').replace(/\n/g, '<br>'), marks = [];
+    function mark(needle, key, html) {
+      if (out.indexOf(needle) < 0) return;
+      out = out.split(needle).join(key);
+      marks.push([key, html]);
+    }
+    DB.employees.slice().sort(function (a, b) { return b.name.length - a.name.length }).forEach(function (e) {
+      mark(esc('@' + e.name), '\u0001e' + e.id + '\u0002',
+        '<span class="cb-mention" data-act="mention:' + e.id + '">@' + esc(e.name) + '</span>');
+    });
+    DB.projects.forEach(function (p) {
+      mark(esc('#' + p.name), '\u0001p' + p.id + '\u0002',
+        '<span class="cb-ref" data-act="open:project:' + p.id + '">#' + esc(p.name) + '</span>');
+    });
+    DB.tasks.forEach(function (t) {
+      mark(esc('#' + t.name), '\u0001t' + t.id + '\u0002',
+        '<span class="cb-ref" data-act="open:task:' + t.id + '">#' + esc(t.name) + '</span>');
+    });
+    marks.forEach(function (pair) { out = out.split(pair[0]).join(pair[1]) });
+    return out;
+  }
+
+  function dispatchNotice(t, fromId) {
+    var cid = t.assignee;
+    if (!cid || cid === 'me' || !DB.byId[cid]) return;
+    var p = DB.projectById(t.project);
+    conv(cid).push({
+      from: (fromId && DB.byId[fromId]) ? fromId : 'ceo',
+      text: '新任务：' + t.name + '（' + (p ? p.name : '未归属项目') + '）。派单已送达，请按「进行中 → 待审核 → 已完成」推进。',
+      time: now(), dispatch: t.id
+    });
+    saveConv(cid);
+  }
+
 
   /* ================= center: details ================= */
   function centerDetail() {
@@ -2689,7 +2940,13 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
       '<div class="cb-te-row"><label>负责人</label><select data-reassign="' + t.id + '">' +
       DB.employees.map(function (e) {
         return '<option value="' + e.id + '"' + (e.id === t.assignee ? ' selected' : '') + '>' + esc(e.name) + '</option>';
-      }).join('') + '</select></div></section>';
+      }).join('') + '</select></div>' +
+      '<div class="cb-te-col"><label>交付汇报 <small>进入待审核前必填</small></label>' +
+      '<textarea data-report="' + t.id + '" rows="2" placeholder="写清楚交付了什么">' + esc(t.report || '') + '</textarea></div>' +
+      '<div class="cb-te-col"><label>CEO 验收 <small>标记完成前必填</small></label>' +
+      '<textarea data-review="' + t.id + '" rows="2" placeholder="验收意见">' + esc(t.review || '') + '</textarea></div>' +
+      '<div class="cb-te-delivery"><span>委派回执</span><b>' + esc(deliveryLabel(t)) + '</b>' +
+      (t.assignment && t.assignment.requestId ? '<small>' + esc(t.assignment.requestId) + '</small>' : '') + '</div></section>';
   }
 
   function taskRow(t) {
@@ -2806,20 +3063,23 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     return '<div class="cb-crumb" data-act="nav:knowledge"><span>‹</span><span>知识库</span></div>' +
       '<div class="cb-detail-head"><div><div class="cb-detail-title">' + esc(d.title) + ' ' + badge(d.cat, '') + '</div>' +
       '<div class="cb-detail-sub">' + d.ext + ' · ' + d.size + ' · 更新于 ' + d.updated + '</div></div>' +
-      '<div class="cb-detail-actions"><button type="button" data-act="toast:演示版不支持在线编辑">编辑</button>' +
-      '<button type="button" class="primary" data-act="toast:已复制文档标题">复制标题</button></div></div>' +
+      '<div class="cb-detail-actions"><button type="button" data-act="editdoc:' + d.id + '">编辑</button>' +
+      '<button type="button" class="primary" data-act="doc:copy:' + d.id + '">复制标题</button></div></div>' +
       '<article class="cb-doc-read">' + mdHTML(body) + '</article>';
   }
 
   function knowledgeView() {
     var cat = S.docCat || '全部';
-    var docs = cat === '全部' ? DB.docs : DB.docs.filter(function (d) { return d.cat === cat });
+    var docs = cat === '全部' ? DB.docs.slice() : DB.docs.filter(function (d) { return d.cat === cat });
+    if (S.docSort === 'name') docs.sort(function (a, b) { return String(a.title).localeCompare(String(b.title), 'zh-CN') });
+    else docs.sort(function (a, b) { return String(b.updated).localeCompare(String(a.updated)) });
     var html = '<div class="cb-detail-head"><div><div class="cb-detail-title">知识库</div>' +
       '<div class="cb-detail-sub">' + docs.length + ' 篇文档 · 分类：' + esc(cat) + '</div></div>' +
-      '<div class="cb-detail-actions"><button type="button" class="primary" data-act="toast:演示版不含文件上传">＋ 新建文档</button></div></div>';
+      '<div class="cb-detail-actions"><button type="button" data-act="doc:import">导入文档</button>' +
+      '<button type="button" class="primary" data-act="modal:doc-new">＋ 新建文档</button></div></div>';
     html += '<div class="cb-kv" style="margin-bottom:12px">' + kv('文档总数', DB.docs.length + ' 篇') +
       kv('本周更新', '4 篇') + kv('存储占用', '56 KB') + kv('索引状态', '正常') + '</div>';
-    html += '<div class="cb-panel"><div class="cb-panel-head"><h5>文档</h5><span class="cb-link" data-act="toast:已按更新时间排序">最近更新</span></div>' +
+    html += '<div class="cb-panel"><div class="cb-panel-head"><h5>文档</h5><span class="cb-link" data-act="sort:docs">' + (S.docSort === 'name' ? '按名称' : '最近更新') + '</span></div>' +
       '<div style="display:flex;flex-direction:column;gap:6px">' + docs.map(function (d) {
         return '<button type="button" class="cb-doc" data-act="doc:' + d.id + '">' +
           '<span class="cb-doc-icon">' + d.ext + '</span>' +
@@ -2838,7 +3098,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
       var stTxt = !ready ? '未配置' : AI.state === 'busy' ? '测试中' : AI.state === 'bad' ? '连接异常' : '已连接';
       html += '<div class="cb-set-group"><h5>模型</h5>' +
         '<div class="cb-set-row"><div class="cb-set-copy"><strong>当前状态</strong><small>' +
-        (ready ? '对话由 ' + esc(AI.model) + ' 实时生成，并会读取下面的组织、项目与任务数据作为上下文' : '未配置 Key，对话走本地规则回复（演示模式）') +
+        (ready ? '对话由 Agnes ' + esc(AI.model) + ' 实时生成，并会读取下面的组织、项目与任务数据作为上下文' : '未配置 Agnes API Key，对话已停用，请先填入 Key 并完成连接测试') +
         '</small></div><span class="cb-ai-state ' + stCls + '"><i></i>' + stTxt + '</span></div>' +
         '<div class="cb-set-row"><div class="cb-set-copy"><strong>自动派活</strong><small>模型说「交给某人」时，自动在对应项目里创建任务，并联动员工状态</small></div>' +
         '<span class="cb-ai-state ok"><i></i>开启</span></div></div>';
@@ -2850,13 +3110,13 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
         '<div class="cb-ai-actions"><button type="button" class="primary" data-act="ai:save">保存并测试</button>' +
         '<button type="button" data-act="ai:test">仅测试</button>' +
         '<button type="button" data-act="ai:clear">清除</button></div>' +
-        '<p class="cb-ai-hint">Key 只保存在当前浏览器标签页，关闭标签页即清除；不会写入 localStorage、页面源码或任何中转服务器。接口必须使用 HTTPS（本机 localhost 开发除外）。' +
+        '<p class="cb-ai-hint">接口固定为 Agnes（apihub.agnes-ai.com/v1），模型默认 agnes-2.5-flash。Key 只保存在当前浏览器标签页，关闭标签页即清除；不会写入 localStorage、页面源码或任何中转服务器。接口必须使用 HTTPS。' +
         (AI.err ? '<br><span style="color:var(--bt-danger)">上次错误：' + esc(AI.err) + '</span>' : '') + '</p>' +
         '</div></div>';
       html += '<div class="cb-panel"><h5>怎么用</h5><div style="font-size:11px;line-height:18px;color:var(--bt-ink-2)">' +
-        '<p style="margin:0 0 6px">填好地址和 Key，点「保存并测试」，看到上方状态变绿就通了。</p>' +
-        '<p style="margin:0 0 6px">回到组织页，直接对 CEO 说「把官网上线这周做完」——它会引用真实项目与任务数据回答，需要交办时自动建任务。</p>' +
-        '<p style="margin:0">任何 OpenAI 兼容服务都能用：DeepSeek、Kimi、OpenAI、本地 Ollama 等，只改地址与模型名。</p></div></div>';
+        '<p style="margin:0 0 6px">填入 Agnes API Key，点「保存并测试」，上方状态变绿即连接成功。</p>' +
+        '<p style="margin:0 0 6px">回到组织页，直接对 CEO 说「把官网上线这周做完」——模型会引用真实项目与任务数据作答，需要交办时输出派单指令，前端据此真实创建任务。</p>' +
+        '<p style="margin:0">未连接模型时无法发送消息：本工作台不提供任何本地规则回复，所有答复都来自 Agnes。</p></div></div>';
     } else if (sec === 'appearance') {
       html += '<div class="cb-set-group"><h5>主题</h5>' +
         '<div class="cb-set-row"><div class="cb-set-copy"><strong>颜色模式</strong><small>切换后立即生效，仅保存在当前会话</small></div>' +
@@ -2883,7 +3143,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
         '<div class="cb-set-row"><div class="cb-set-copy"><strong>任务状态变更</strong><small>任务进入阻塞或审核时提醒我</small></div>' +
         '<button type="button" class="cb-switch ' + (S.notify ? 'on' : '') + '" data-act="toggle:notify"></button></div>' +
         '<div class="cb-set-row"><div class="cb-set-copy"><strong>每日进展摘要</strong><small>每天 18:00 汇总各项目进度</small></div>' +
-        '<button type="button" class="cb-switch on" data-act="toast:演示版仅保留开关状态"></button></div>' +
+        '<button type="button" class="cb-switch ' + (S.dailyDigest ? 'on' : '') + '" data-act="toggle:daily"></button></div>' +
         '<div class="cb-set-row"><div class="cb-set-copy"><strong>阻塞提醒</strong><small>有任务阻塞超过 24 小时时提醒</small></div>' +
         '<button type="button" class="cb-switch ' + (S.notify ? 'on' : '') + '" data-act="toggle:notify"></button></div></div>';
     } else {
@@ -2892,13 +3152,13 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
         '<p style="margin:0 0 8px">AI 组织工作台：左侧组织导航，中间与 CEO / 员工的会话，右侧上下文 Inspector。</p>' +
         '<p style="margin:0 0 8px">' + (aiReady()
           ? '<b>当前已连接模型</b>：' + esc(AI.model) + '。对 CEO 说的话会带上组织架构、项目进度与任务清单一起提交，需要交办时前端会解析指令并真实创建任务。'
-          : '<b>当前为演示模式</b>：组织、项目、任务数据为本地示例；对话回复由规则生成，<b>尚未连接模型</b>。到「设置 › 模型」填上 Key 即可切换为真实 AI。') + '</p>' +
-        '<p style="margin:0 0 8px">组织数据存在当前浏览器内存里，刷新会回到初始示例；模型配置存在 localStorage，API Key 仅保存在当前标签页。</p>' +
+          : '<b>Agnes 未连接</b>：对话已停用。到「设置 › 模型」填入 API Key 即可启用；本工作台不提供本地规则回复。') + '</p>' +
+        '<p style="margin:0 0 8px">组织、任务与文档的改动保存在当前浏览器；模型配置存在 localStorage，API Key 仅保存在当前标签页。</p>' +
         '<p style="margin:0">版本 v1.0 · 构建 2026-11-14</p></div></div>' +
         '<div class="cb-panel"><h5>数据</h5><div class="cb-kv">' +
         kv('员工', DB.employees.length + '') + kv('项目', DB.projects.length + '') +
         kv('任务', DB.tasks.length + '') + kv('文档', DB.docs.length + '') + '</div>' +
-        '<button type="button" class="cb-ghost" style="margin-top:10px" data-act="reset">重置演示数据</button></div>';
+        '<button type="button" class="cb-ghost" style="margin-top:10px" data-act="reset">重置工作区数据</button></div>';
     }
     return html;
   }
@@ -2908,14 +3168,14 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     DB.departments.forEach(function (x) { if (x.id === id) d = x });
     if (!d) return '<div class="cb-empty-block">部门不存在</div>';
     var members = DB.deptEmployees(d.name);
+    if (S.deptSort) members = members.slice().sort(function (a, b) { return String(a.status).localeCompare(String(b.status)) });
     var projs = DB.projects.filter(function (p) { return members.some(function (m) { return m.id === p.lead }) });
     var html = '<div class="cb-crumb" data-act="back"><span>‹</span><span>组织</span></div>';
     html += '<div class="cb-detail-head"><div><div class="cb-detail-title">' + d.icon + ' ' + esc(d.name) + '</div>' +
       '<div class="cb-detail-sub">' + members.length + ' 名成员 · ' + projs.length + ' 个在管项目</div></div>' +
-      '<div class="cb-detail-actions"><button type="button" data-act="toast:演示版不支持调整组织架构">调整架构</button>' +
-      '<button type="button" class="primary" data-act="modal:task">派任务</button></div></div>';
+      '<div class="cb-detail-actions"><button type="button" class="primary" data-act="modal:task">派任务</button></div></div>';
     html += '<div class="cb-panel"><h5>部门职责</h5><div style="font-size:11px;line-height:18px;color:var(--bt-ink-2)">' + esc(d.desc) + '</div></div>';
-    html += '<div class="cb-panel"><div class="cb-panel-head"><h5>成员</h5><span class="cb-link" data-act="toast:已按状态排序">按状态</span></div>' +
+    html += '<div class="cb-panel"><div class="cb-panel-head"><h5>成员</h5><span class="cb-link" data-act="sort:dept">' + (S.deptSort ? '默认顺序' : '按状态') + '</span></div>' +
       members.map(function (e) {
         return '<button type="button" class="cb-member-row" data-act="open:emp:' + e.id + '">' + avatar(e) +
           '<span class="cb-member-copy"><strong>' + esc(e.name) + '</strong><small>' + esc(e.role) + '</small></span>' +
@@ -3026,15 +3286,15 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     }
     if (kind === 'settings') {
       return '<div class="cb-inspector-hero"><div class="cb-hero-top"><span class="cb-avatar cb-avatar-lg" style="background:linear-gradient(135deg,var(--bt-accent),var(--bt-accent-soft));color:#fff">⚙</span>' +
-        '<div class="cb-hero-copy"><div class="cb-hero-name"><span>CompBotOrg</span></div><small>v1.0 · ' + (aiReady() ? '模型已连接' : '演示构建') + '</small></div></div>' +
+        '<div class="cb-hero-copy"><div class="cb-hero-name"><span>CompBotOrg</span></div><small>v1.0 · ' + (aiReady() ? 'Agnes 已连接' : 'Agnes 未连接') + '</small></div></div>' +
         '<div class="cb-hero-quote">「 让 AI 成为更强大的生产力 」</div></div>' +
         '<div class="cb-inspector-body"><section class="cb-section"><h4>数据规模</h4><div class="cb-info">' +
         infoRow('员工', DB.employees.length + '') + infoRow('部门', DB.departments.length + '') +
         infoRow('项目', DB.projects.length + '') + infoRow('任务', DB.tasks.length + '') + '</div></section>' +
-        '<section class="cb-section"><h4>当前模式</h4><div style="font-size:10px;line-height:16px;color:var(--bt-ink-2)">' +
+        '<section class="cb-section"><h4>模型连接</h4><div style="font-size:10px;line-height:16px;color:var(--bt-ink-2)">' +
         (aiReady()
           ? '已连接 <b>' + esc(AI.model) + '</b>。CEO 与员工的回复由模型实时生成，请求会携带组织架构、项目进度与任务清单作为上下文。'
-          : '演示模式：数据为本地示例，对话回复由规则生成，未连接模型。点上方横幅或到「设置 › 模型」填入 Key 即可切换到真实 AI。') +
+          : 'Agnes 未连接：对话已停用，点上方横幅或到「设置 › 模型」填入 API Key。本工作台不提供本地规则回复。') +
         '</div></section></div>';
     }
     return '<div class="cb-inspector-hero"><div class="cb-hero-top"><span class="cb-avatar cb-avatar-lg" style="background:linear-gradient(135deg,var(--bt-accent),var(--bt-accent-soft));color:#fff">⌕</span>' +
@@ -3224,7 +3484,12 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
   }
 
   /* ================= actions ================= */
+  function clearDraft() {
+    closeMention();
+    S.draftMentions = []; S.draftRefs = [];
+  }
   function nav(view) {
+    clearDraft();
     S.view = view;
     S.query = '';
     S.projectTab = 'overview';
@@ -3244,6 +3509,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
 
   function openEmp(id) {
     if (!DB.byId[id]) return;
+    clearDraft();
     S.view = 'org';
     S.subject = { type: 'employee', id: id };
     S.inspectorTab = 'status';
@@ -3284,16 +3550,36 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     if (!isChat() || busyId === convId()) return;
     var input = composerEl(); if (!input) return;
     var text = input.value.replace(/\s+$/, ''); if (!text.trim()) return;
+    /* 回复只有 Agnes 一条路径：没连上模型不发送、不生成任何本地兜底内容 */
+    if (!aiReady()) {
+      toast('请先连接 Agnes · 点顶部横幅填入 API Key');
+      return;
+    }
+    /* 只保留文本里仍存在的 token：用户手删掉 @姓名 后不该留幽灵点名 */
+    var mentions = S.draftMentions.filter(function (id) {
+      var e = DB.byId[id]; return e && text.indexOf('@' + e.name) >= 0;
+    });
+    var refs = S.draftRefs.filter(function (r) { return text.indexOf('#' + r.name) >= 0 });
+    closeMention();
+    S.draftMentions = []; S.draftRefs = [];
     input.value = ''; autoGrow(input);
+    S.drafts[convId()] = '';
     var empId = convId();
     var list = conv(empId);
     var m = { from: 'me', text: text, time: now() };
+    if (mentions.length) m.mentions = mentions;
+    if (refs.length) m.refs = refs;
     list.push(m);
+    /* 点名即抄送：被 @ 的人在自己的会话里看到同一条消息，但不触发模型回复 */
+    mentions.forEach(function (id) {
+      if (id === empId || !DB.byId[id]) return;
+      conv(id).push({ from: 'me', text: text, time: now(), mentions: mentions, refs: refs, cc: empId });
+      saveConv(id);
+    });
     var chat = $('#center-body');
     chat.insertAdjacentHTML('beforeend', msgHTML(m, list.length - 1));
     saveConv(empId);
-    if (aiReady()) streamReply(empId, chat, list, text);
-    else localReply(empId, chat, list, text);
+    streamReply(empId, chat, list, mentions);
   }
 
   function setSendMode(mode) {
@@ -3319,20 +3605,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     toast('已停止生成');
   }
 
-  function localReply(empId, chat, list, text) {
-    chat.insertAdjacentHTML('beforeend', typingHTML());
-    scrollChat();
-    busyId = empId; S.busy = true;
-    setTimeout(function () {
-      busyId = null; S.busy = false;
-      list.push({ from: empId, text: replyFor(empId, text), time: now() });
-      render();
-      scrollChat();
-      saveConv(empId);
-    }, 900);
-  }
-
-  function streamReply(empId, chat, list) {
+  function streamReply(empId, chat, list, mentions) {
     busyId = empId; S.busy = true; S.stopped = false;
     chat.insertAdjacentHTML('beforeend', streamingHTML(empId));
     setSendMode('stop');
@@ -3353,7 +3626,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     aiStream(empId, function (full) { acc = full; paint(); scrollChat() }, think)
       .then(function (full) {
         var parsed = parseTasks(full || acc);
-        var made = commitTasks(parsed.specs, empId);
+        var made = commitTasks(parsed.specs, empId, mentions);
         var msg = { from: empId, text: parsed.text || '（空回复）', time: now() };
         if (made.length) msg.tasks = made;
         list.push(msg);
@@ -3389,37 +3662,6 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
       });
   }
 
-  function replyFor(id, text) {
-    var e = DB.byId[id] || DB.byId.ceo;
-    if (/进度|怎么样|如何/.test(text)) {
-      var mine = DB.empTasks(id);
-      if (mine.length) {
-        var avg = Math.round(mine.reduce(function (a, t) { return a + t.pct }, 0) / mine.length);
-        return '我手上的 ' + mine.length + ' 个任务平均进度 ' + avg + '%。' +
-          mine.slice(0, 2).map(function (t) { return '「' + t.name + '」' + t.pct + '%' }).join('，') + '，其余按计划推进。';
-      }
-      if (id === 'ceo') return 'AI Organization v1 整体进度 42%，6 个任务里 1 个已完成、2 个进行中，没有阻塞。';
-      return '我这边暂时没有在办任务，可以随时接新的。';
-    }
-    if (/谁负责|分配|分工/.test(text)) {
-      return '分工：产品架构 Product AI，DSHBot 改造 DSHBot，组织关系网 Backend AI，界面 Design AI，Skill 系统 Platform AI，测试发布 QA AI。';
-    }
-    if (/风险|阻塞|问题/.test(text)) {
-      var blocked = DB.tasks.filter(function (t) { return t.status === 'blocked' });
-      if (blocked.length) return '有 ' + blocked.length + ' 个阻塞：' + blocked.map(function (t) { return '「' + t.name + '」(' + t.note + ')' }).join('；') + '。我建议先解这个。';
-      return '目前没有阻塞项。风险是 UI 和 Skill 系统还没启动，我会优先调度。';
-    }
-    if (/谢谢|辛苦|好的|收到/.test(text)) return '不客气，有进展我第一时间同步。';
-    if (/你好|在吗|hi|hello/i.test(text)) return '在。老板有什么安排？';
-    var pool = [
-      '收到，我把这条记到「' + (DB.projects[0].name) + '」的任务流里，稍后同步进展。',
-      '明白。我先拆成两三个可执行步骤，完成后向你汇报。',
-      '这件事我可以接，预计今天内给第一版结果。',
-      '好的，需要我拉上 ' + (DB.employees.filter(function (x) { return x.dept === e.dept && x.id !== e.id })[0] || { name: '相关同事' }).name + ' 一起吗？'
-    ];
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-
   /* ================= modal ================= */
   function openModal(kind) {
     var mask = $('#modal-mask');
@@ -3440,6 +3682,26 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
         DB.employees.map(function (e) { return '<option value="' + e.id + '">' + esc(e.name) + ' · ' + esc(e.dept) + '</option>' }).join('') + '</select></div>' +
         '<div class="cb-modal-foot"><button type="button" data-act="modal:close">取消</button>' +
         '<button type="button" class="primary" data-act="modal:create-task">创建</button></div>';
+    } else if (kind === 'doc-edit') {
+      var de = null;
+      DB.docs.forEach(function (x) { if (x.id === S.editDocId) de = x });
+      if (!de) { toast('文档不存在'); return }
+      modal.innerHTML = '<h3>编辑文档</h3><p>修改会立即保存到当前浏览器。</p>' +
+        '<div class="cb-field"><label>标题</label><input id="f-doc-title" value="' + esc(de.title) + '"></div>' +
+        '<div class="cb-field"><label>正文 · 支持 Markdown</label><textarea id="f-doc-body" rows="10" class="cb-doc-editor">' + esc(DOC_BODY[de.id] || '') + '</textarea></div>' +
+        '<div class="cb-modal-foot"><button type="button" data-act="modal:close">取消</button>' +
+        '<button type="button" class="primary" data-act="modal:save-doc">保存</button></div>';
+    } else if (kind === 'doc-new') {
+      var cats = [];
+      DB.docs.forEach(function (x) { if (cats.indexOf(x.cat) < 0) cats.push(x.cat) });
+      if (cats.indexOf('其他') < 0) cats.push('其他');
+      modal.innerHTML = '<h3>新建文档</h3><p>正文支持 Markdown，保存后进入知识库。</p>' +
+        '<div class="cb-field"><label>标题</label><input id="f-doc-title" placeholder="例如：本周复盘"></div>' +
+        '<div class="cb-field"><label>分类</label><select id="f-doc-cat">' +
+        cats.map(function (c2) { return '<option value="' + esc(c2) + '">' + esc(c2) + '</option>' }).join('') + '</select></div>' +
+        '<div class="cb-field"><label>正文 · 支持 Markdown</label><textarea id="f-doc-body" rows="10" class="cb-doc-editor" placeholder="# 标题"></textarea></div>' +
+        '<div class="cb-modal-foot"><button type="button" data-act="modal:close">取消</button>' +
+        '<button type="button" class="primary" data-act="modal:create-doc">创建</button></div>';
     } else {
       modal.innerHTML = '<h3>新建项目</h3><p>新项目会出现在左栏与项目视图。</p>' +
         '<div class="cb-field"><label>项目名称</label><input id="f-name" placeholder="例如：移动端适配"></div>' +
@@ -3450,19 +3712,99 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
         '<button type="button" class="primary" data-act="modal:create-project">创建</button></div>';
     }
     mask.classList.add('on');
-    var input = $('#f-name'); if (input) input.focus();
+    var input = $('#f-name') || $('#f-doc-title'); if (input) input.focus();
   }
   function closeModal() {
     var mask = $('#modal-mask');
     if (mask) mask.classList.remove('on');
   }
+  function docMeta(title, body) {
+    var plain = String(body || '').replace(/^#+\s+.*\n/, '').replace(/[#*`|>\[\]]/g, '').replace(/\s+/g, ' ').trim();
+    return {
+      desc: (plain || title).slice(0, 60),
+      size: Math.max(1, Math.round(String(body || '').length / 400)) + ' KB',
+      updated: new Date().toISOString().slice(0, 10)
+    };
+  }
+  function saveDoc() {
+    var d = null;
+    DB.docs.forEach(function (x) { if (x.id === S.editDocId) d = x });
+    if (!d) { toast('文档不存在'); return }
+    var title = (($('#f-doc-title') || {}).value || '').trim();
+    var body = (($('#f-doc-body') || {}).value || '').replace(/\s+$/, '');
+    if (!title) { toast('请填写标题'); return }
+    var meta = docMeta(title, body);
+    d.title = title; d.desc = meta.desc; d.size = meta.size; d.updated = meta.updated;
+    DOC_BODY[d.id] = body;
+    DOC_DIRTY[d.id] = true;
+    saveDocs();
+    closeModal();
+    render();
+    toast('已保存文档：' + title);
+  }
+  function createDoc() {
+    var title = (($('#f-doc-title') || {}).value || '').trim();
+    var body = (($('#f-doc-body') || {}).value || '').replace(/\s+$/, '');
+    var cat = ($('#f-doc-cat') || {}).value || '其他';
+    if (!title) { toast('请填写标题'); return }
+    var id = uid('d');
+    var meta = docMeta(title, body);
+    DB.docs.unshift({ id: id, title: title, cat: cat, ext: 'MD', size: meta.size, updated: meta.updated, desc: meta.desc });
+    DOC_BODY[id] = body || ('# ' + title + '\n\n');
+    saveDocs();
+    closeModal();
+    S.view = 'knowledge'; S.subject = { type: 'doc', id: id };
+    render();
+    toast('已创建文档：' + title);
+  }
+  function importDoc() {
+    var el = $('#cb-file-input');
+    if (!el) {
+      el = document.createElement('input');
+      el.type = 'file'; el.id = 'cb-file-input';
+      el.accept = '.md,.markdown,.txt,.csv,.log,text/plain,text/markdown';
+      el.style.display = 'none';
+      document.body.appendChild(el);
+      el.addEventListener('change', function () {
+        var f = el.files && el.files[0];
+        if (!f) return;
+        var rd = new FileReader();
+        rd.onload = function () {
+          var body = String(rd.result || '').slice(0, 120000);
+          var title = f.name.replace(/\.[^.]+$/, '') || '导入文档';
+          var id = uid('d');
+          var meta = docMeta(title, body);
+          DB.docs.unshift({ id: id, title: title, cat: '其他', ext: 'MD', size: meta.size, updated: meta.updated, desc: meta.desc });
+          DOC_BODY[id] = body || ('# ' + title + '\n\n');
+          saveDocs();
+          S.view = 'knowledge'; S.subject = { type: 'doc', id: id };
+          render();
+          toast('已导入：' + f.name);
+        };
+        rd.onerror = function () { toast('读取文件失败') };
+        rd.readAsText(f);
+        el.value = '';
+      });
+    }
+    el.click();
+  }
+  function copyDocTitle(id) {
+    var d = null;
+    DB.docs.forEach(function (x) { if (x.id === id) d = x });
+    if (!d) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(d.title).then(function () { toast('已复制标题') }, function () { toast('复制失败') });
+    } else toast(d.title);
+  }
+
   function createTask() {
     var name = ($('#f-name') || {}).value || '';
     name = name.trim();
     if (!name) { toast('请填写任务名称'); return }
     var pid = ($('#f-project') || {}).value || 'p1';
     var owner = ($('#f-owner') || {}).value || 'ceo';
-    DB.tasks.push({ id: uid('t'), name: name, project: pid, assignee: owner, status: 'pending', pct: 0, due: '待排期' });
+    DB.tasks.push({ id: uid('t'), name: name, project: pid, assignee: owner, status: 'pending', pct: 0, due: '待排期',
+      report: '', review: '', assignment: { status: 'ready', requestId: 'task:new', attempts: 0, updatedAt: Date.now(), error: '' } });
     recalcProject(pid);
     closeModal();
     render();
@@ -3491,6 +3833,9 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     DB.byId = {};
     DB.employees.forEach(function (e) { DB.byId[e.id] = e });
     Object.keys(DOC_BODY).forEach(function (k) { if (!SEED_DOC_IDS[k]) delete DOC_BODY[k] });
+    Object.keys(DOC_DIRTY).forEach(function (k) { delete DOC_DIRTY[k] });
+    Object.keys(SEED_DOC_BODY).forEach(function (k) { DOC_BODY[k] = SEED_DOC_BODY[k] });
+    S.drafts = {};
     S.messages = {};
     S.group = null; S.projectFilter = '全部'; S.docCat = '全部';
     S.inspectTask = null; S.highlightTask = null;
@@ -3499,8 +3844,23 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     toast('已恢复到初始示例数据');
   }
 
+  function focusTaskField(id, field) {
+    var el = $('[data-' + field + '="' + id + '"]');
+    if (el) { try { el.focus() } catch (e) {} }
+  }
   function setTaskStatus(id, st) {
     var t = DB.taskById(id); if (!t || !STATUS[st]) return;
+    if (st === t.status) return;
+    if ((TASK_TRANSITIONS[t.status] || []).indexOf(st) < 0) {
+      toast('不能从「' + ((STATUS[t.status] || {}).label || t.status) + '」直接到「' + STATUS[st].label + '」，需按 待处理 → 进行中 → 待审核 → 已完成');
+      return;
+    }
+    if (st === 'review' && !(t.report || '').trim()) {
+      toast('先写「交付汇报」，才能提交待审核'); focusTaskField(id, 'report'); return;
+    }
+    if (st === 'done' && !(t.review || '').trim()) {
+      toast('先写「CEO 验收」，才能标记完成'); focusTaskField(id, 'review'); return;
+    }
     t.status = st;
     if (st === 'done') t.pct = 100;
     else if (st === 'pending') t.pct = 0;
@@ -3514,16 +3874,16 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
   function setTaskPct(id, v) {
     var t = DB.taskById(id); if (!t) return;
     t.pct = pct(v);
-    if (t.pct >= 100) t.status = 'done';
-    else if (t.status === 'done' && t.pct < 100) t.status = 'running';
+    /* 进度滑块不越权改状态：状态只能由状态按钮按状态机推进 */
+    if (t.status === 'done' && t.pct < 100) t.status = 'review';
     recalcProject(t.project);
-    render();
     saveTasks();
   }
   function setTaskOwner(id, empId) {
     var t = DB.taskById(id); if (!t || !DB.byId[empId]) return;
     var old = t.assignee;
     t.assignee = empId;
+    t.assignment = { status: 'ready', requestId: 'task:' + id, attempts: 0, updatedAt: Date.now(), error: '' };
     syncEmpStatus(old); syncEmpStatus(empId);
     render();
     saveTasks();
@@ -3548,11 +3908,15 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
 
   /* ================= events ================= */
   document.addEventListener('click', function (ev) {
+    if (S.mention && !ev.target.closest('#mention-pop') &&
+        !(ev.target.getAttribute && ev.target.getAttribute('data-input') === 'composer')) closeMention();
     var t = ev.target.closest('[data-act]');
     if (!t) return;
     var parts = t.getAttribute('data-act').split(':');
     var a = parts[0], b = parts[1], c = parts[2];
     if (a === 'nav') nav(b);
+    else if (a === 'mpick') pickMention(+b);
+    else if (a === 'mention') openEmp(b);
     else if (a === 'open' && b === 'emp') openEmp(c);
     else if (a === 'open' && b === 'project') openProject(c);
     else if (a === 'open' && b === 'dept') openDept(c);
@@ -3581,26 +3945,35 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     else if (a === 'modal' && b === 'close') closeModal();
     else if (a === 'modal' && b === 'create-task') createTask();
     else if (a === 'modal' && b === 'create-project') createProject();
+    else if (a === 'modal' && b === 'doc-new') openModal('doc-new');
+    else if (a === 'modal' && b === 'create-doc') createDoc();
+    else if (a === 'modal' && b === 'save-doc') saveDoc();
+    else if (a === 'editdoc') { S.editDocId = b; openModal('doc-edit') }
+    else if (a === 'doc' && b === 'import') importDoc();
+    else if (a === 'doc' && b === 'copy') copyDocTitle(c);
+    else if (a === 'sort' && b === 'docs') { S.docSort = S.docSort === 'name' ? 'updated' : 'name'; render(); toast(S.docSort === 'name' ? '已按名称排序' : '已按更新时间排序') }
+    else if (a === 'sort' && b === 'dept') { S.deptSort = !S.deptSort; render(); toast(S.deptSort ? '已按状态排序' : '已恢复默认顺序') }
+    else if (a === 'toggle' && b === 'daily') { S.dailyDigest = !S.dailyDigest; render(); toast(S.dailyDigest ? '已开启每日进展摘要' : '已关闭每日进展摘要') }
     else if (a === 'theme') { S.theme = S.theme === 'dark' ? 'light' : 'dark'; render(); toast(S.theme === 'dark' ? '已切换到深色模式' : '已切换到浅色模式') }
     else if (a === 'insp') { S.inspector = !S.inspector; render(); toast(S.inspector ? '已展开 Inspector' : '已收起 Inspector') }
     else if (a === 'settheme') { S.theme = b; render() }
     else if (a === 'density') { S.density = b; render() }
     else if (a === 'toggle' && b === 'insp') { S.inspector = !S.inspector; render() }
     else if (a === 'toggle' && b === 'notify') { S.notify = !S.notify; render() }
-    else if (a === 'toast') { toast(b || '演示版暂不支持') }
+    else if (a === 'toast') { toast(b || '暂不支持') }
     else if (a === 'doc') { S.view = 'knowledge'; S.subject = { type: 'doc', id: b }; render(); var bd = $('#center-body'); if (bd) bd.scrollTop = 0 }
     else if (a === 'copy') {
       var list = conv(convId()); var m = list[+b];
       if (m && navigator.clipboard) navigator.clipboard.writeText(m.text).then(function () { toast('已复制') }, function () { toast('复制失败') });
       else toast('已复制');
     }
-    else if (a === 'quote') { var q = conv(convId())[+b]; var inp = composerEl(); if (q && inp) { inp.value = '> ' + q.text.split('\n')[0] + '\n'; inp.focus() } }
+    else if (a === 'quote') { var q = conv(convId())[+b]; var inp = composerEl(); if (q && inp) { inp.value = '> ' + q.text.split('\n')[0] + '\n'; S.drafts[convId()] = inp.value; inp.focus() } }
     else if (a === 'retry') {
       if (busyId) { toast('上一条还在生成，先停止再重发'); return }
       var cid = convId(), lm = conv(cid)[+b];
       if (lm && lm.from === 'me') {
         var inp2 = composerEl();
-        if (inp2) { inp2.value = lm.text; autoGrow(inp2); inp2.focus() }
+        if (inp2) { inp2.value = lm.text; S.drafts[convId()] = lm.text; autoGrow(inp2); inp2.focus() }
         dropFrom(cid, +b);
         renderCenter(); scrollChat();
         saveConv(cid);
@@ -3630,7 +4003,22 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
       if (lab) lab.textContent = pct(t.value) + '%';
       return;
     }
-    if (t.getAttribute && t.getAttribute('data-input') === 'composer') { autoGrow(t); return }
+    if (t.getAttribute && (t.getAttribute('data-report') || t.getAttribute('data-review'))) {
+      var tid = t.getAttribute('data-report') || t.getAttribute('data-review');
+      var tk = DB.taskById(tid);
+      if (tk) {
+        if (t.getAttribute('data-report')) tk.report = t.value;
+        else tk.review = t.value;
+        saveTasks();
+      }
+      return;
+    }
+    if (t.getAttribute && t.getAttribute('data-input') === 'composer') {
+      autoGrow(t);
+      S.drafts[convId()] = t.value;
+      if (!ev.isComposing) updateMention(t);
+      return;
+    }
     if (t.getAttribute && t.getAttribute('data-input') === 'search') {
       S.query = t.value;
       if (S.view === 'search' || S.view === 'org') {
@@ -3646,10 +4034,20 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     if (t.getAttribute && t.getAttribute('data-reassign')) {
       setTaskOwner(t.getAttribute('data-reassign'), t.value);
     }
+    if (t.getAttribute && t.getAttribute('data-progress')) render();
   });
 
   document.addEventListener('keydown', function (ev) {
     var tag = (ev.target.tagName || '').toLowerCase();
+    var isComposer = ev.target.getAttribute && ev.target.getAttribute('data-input') === 'composer';
+    if (isComposer && S.mention && S.mention.items.length) {
+      if (ev.key === 'ArrowDown') { ev.preventDefault(); mentionMove(1); return }
+      if (ev.key === 'ArrowUp') { ev.preventDefault(); mentionMove(-1); return }
+      if (ev.key === 'Escape') { ev.preventDefault(); closeMention(); return }
+      if ((ev.key === 'Enter' || ev.key === 'Tab') && !ev.shiftKey) {
+        ev.preventDefault(); pickMention(S.mention.index); return;
+      }
+    }
     if (ev.key === 'Enter' && ev.target.id && /^ai-(base|key|model|temp)$/.test(ev.target.id)) {
       ev.preventDefault(); aiSaveForm(); return;
     }
@@ -3664,6 +4062,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
       ev.preventDefault(); var s2 = $('[data-input=search]'); if (s2) s2.focus();
     }
     if (ev.key === 'Escape') {
+      closeMention();
       closeModal();
       if (S.query) { S.query = ''; if (S.view === 'search') S.view = 'org'; render(); }
     }
@@ -3680,7 +4079,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
     document.body.setAttribute('data-ready', '1');
     setTimeout(function () {
       if (aiReady()) toast('模型已就绪 · ' + AI.model);
-      else toast('演示模式 · 数据与回复均为本地示例');
+      else toast('Agnes 未连接 · 到「设置 › 模型」填入 API Key');
     }, 400);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
