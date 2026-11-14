@@ -12,7 +12,7 @@ export const TASK_STATUSES = new Set(['pending', 'running', 'review', 'blocked',
 export const DELIVERY_STATUSES = new Set(['unassigned', 'ready', 'dispatched', 'acknowledged', 'failed'])
 const STATUS_ALIASES = {
   pending: 'pending', 'not started': 'pending', todo: 'pending', 待办: 'pending', 待启动: 'pending',
-  running: 'running', working: 'running', active: 'running', 进行中: 'running', 工作中: 'running',
+  running: 'running', working: 'running', active: 'running', 'in progress': 'running', in_progress: 'running', 进行中: 'running', 工作中: 'running',
   review: 'review', reported: 'review', 待验收: 'review', 验收中: 'review',
   blocked: 'blocked', 阻塞: 'blocked', 需要关注: 'blocked',
   done: 'done', completed: 'done', 已完成: 'done',
@@ -193,7 +193,7 @@ function findTask(org, ref) {
   if (!key) return undefined
   const byId = org.tasks.find(task => task.id === key)
   if (byId) return byId
-  const matches = org.tasks.filter(task => task.title.toLowerCase() === key.toLowerCase())
+  const matches = org.tasks.filter(task => String(task.title ?? '').toLowerCase() === key.toLowerCase())
   if (matches.length > 1) throw Object.assign(new Error('Task title is ambiguous; use its id'), { code: 'bot/invalid' })
   return matches[0]
 }
@@ -217,11 +217,12 @@ export function addTask(state, input = {}) {
   const projectId = clean(input.projectId) || null
   if (projectId && !org.projects.some(project => project.id === projectId)) throw Object.assign(new Error('Unknown project'), { code: 'bot/not-found' })
   const status = taskStatus(input.status) ?? 'pending'
+  const assigneeId = requireBot(state, input.assigneeId)
   const task = {
     id: clean(input.id) || id('task'),
     projectId,
     title: title.slice(0, 200),
-    assigneeId: requireBot(state, input.assigneeId),
+    assigneeId,
     label: limit(input.label, 80),
     status,
     progress: status === 'done' ? 100 : pct(input.progress),
@@ -231,8 +232,11 @@ export function addTask(state, input = {}) {
     createdAt: stamp(),
     updatedAt: stamp(),
     assignment: {
-      status: input.assigneeId ? 'ready' : 'unassigned',
-      requestId: input.assigneeId ? `task:${clean(input.id) || 'new'}` : null,
+      // Derive delivery from the *cleaned* assignee. A whitespace-only id becomes
+      // null above; using the raw input here would leave an unassigned task marked
+      // "ready" with no one to dispatch it to.
+      status: assigneeId ? 'ready' : 'unassigned',
+      requestId: null, // filled in below from the resolved task id
       attempts: 0,
       updatedAt: stamp(),
       error: '',
@@ -252,8 +256,12 @@ export function setTask(state, input = {}) {
   if (!task) throw Object.assign(new Error('Unknown task'), { code: 'bot/not-found' })
   const status = input.status === undefined ? null : taskStatus(input.status)
   if (input.status !== undefined && status === null) throw Object.assign(new Error('Unknown task status'), { code: 'bot/invalid' })
-  if (status && !TASK_TRANSITIONS[task.status]?.has(status)) {
-    throw Object.assign(new Error(`Invalid task transition: ${task.status} → ${status}`), { code: 'bot/invalid' })
+  // Rows written by older builds may carry a status outside the current enum.
+  // Normalise on read instead of locking them out of every legal transition.
+  const current = taskStatus(task.status) ?? 'pending'
+  if (current !== task.status) task.status = current
+  if (status && !TASK_TRANSITIONS[current]?.has(status)) {
+    throw Object.assign(new Error(`Invalid task transition: ${current} → ${status}`), { code: 'bot/invalid' })
   }
   if (status === 'review' && !(clean(input.report) || clean(task.report))) {
     throw Object.assign(new Error('A task needs a report before review'), { code: 'bot/invalid' })
@@ -327,7 +335,7 @@ export function addDecision(state, input = {}) {
 export function resolveDecision(state, input = {}) {
   const org = ensureOrganization(state)
   const key = clean(input.decisionId ?? input.id ?? input.title)
-  const decision = org.decisions.find(item => item.id === key || item.title.toLowerCase() === key.toLowerCase())
+  const decision = org.decisions.find(item => item.id === key || String(item.title ?? '').toLowerCase() === key.toLowerCase())
   if (!decision) throw Object.assign(new Error('Unknown decision'), { code: 'bot/not-found' })
   decision.status = 'resolved'
   decision.answer = limit(input.answer ?? input.note, 1000)

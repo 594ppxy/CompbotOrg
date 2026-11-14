@@ -134,3 +134,37 @@ test('an old v1 organization is adopted without losing its graph', () => {
   assert.deepEqual(view.tasks, [])
   assert.equal(state.organization.version, 3)
 })
+
+test('legacy and dirty rows stay repairable instead of throwing or locking', () => {
+  const state = team()
+  const project = upsertProject(state, { name: '兼容旧数据' })
+
+  // A whitespace-only assignee must not leave an unassigned task marked "ready".
+  const ghost = addTask(state, { projectId: project.id, title: '空白负责人', assigneeId: '   ' })
+  assert.equal(ghost.assigneeId, null)
+  assert.equal(ghost.assignment.status, 'unassigned')
+  assert.equal(ghost.assignment.requestId, null)
+
+  // A status written by an older build is normalised on read, so the task can
+  // still move through the legal lifecycle instead of being frozen forever.
+  const legacy = addTask(state, { projectId: project.id, title: '旧任务', assigneeId: 'eng' })
+  legacy.status = 'in_progress'
+  setTask(state, { taskId: legacy.id, status: 'running' })
+  assert.equal(legacy.status, 'running')
+  legacy.status = 'totally_unknown'
+  setTask(state, { taskId: legacy.id, status: 'running' })
+  assert.equal(legacy.status, 'running')
+
+  // A row without a title is still addressable by id; a title lookup fails
+  // with a friendly error rather than a TypeError.
+  const dirty = addTask(state, { projectId: project.id, title: '脏数据', assigneeId: 'eng' })
+  delete dirty.title
+  setTask(state, { taskId: dirty.id, progress: 55 })
+  assert.equal(dirty.progress, 55)
+  assert.throws(() => setTask(state, { taskId: '脏数据', status: 'running' }), /Unknown task/)
+
+  // Same guard on decisions.
+  addDecision(state, { title: '临时议题' })
+  state.organization.decisions.push({ id: 'dirty_decision', status: 'pending' })
+  assert.throws(() => resolveDecision(state, { decisionId: '查无此议题', answer: 'x' }), /Unknown decision/)
+})
