@@ -46,3 +46,10 @@ The UI must follow the original CompBotOrg design reference. The reference conve
 https://chatgpt.com/s/m_6af7cf7a460881919da8896d884a754c
 
 See [`docs/COMPBOTORG_DESIGN_BRIEF.md`](docs/COMPBOTORG_DESIGN_BRIEF.md) and [`PROMPT_FOR_CODING_AGENT.md`](PROMPT_FOR_CODING_AGENT.md) before making frontend changes.
+
+
+## 设计参考图
+
+实现 UI 时以这张参考图为最高优先级：
+
+[https://chatgpt.com/s/m_6af7cf7a460881919da8896d884a754c](https://chatgpt.com/s/m_6af7cf7a460881919da8896d884a754c)
