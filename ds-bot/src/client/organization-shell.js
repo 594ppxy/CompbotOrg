@@ -189,7 +189,7 @@ export function OrganizationNav({ useRoster, actions }) {
       deptDraft ? h('div', { className: 'cb-dept-form' },
         h('input', {
           className: 'cb-dept-input', autoFocus: true, value: deptDraft.name, placeholder: '部门名称，如 技术部',
-          'aria-label': '部门名称', maxLength: 40,
+          'aria-label': '部门名称', maxLength: 40, required: true,
           onChange: event => setDeptDraft(state => ({ ...state, name: event.target.value })),
           onKeyDown: (event) => {
             if (event.key === 'Enter' && !event.nativeEvent?.isComposing) createDepartment()
@@ -329,7 +329,7 @@ export function DepartmentPanel({ department, members, parent, childCount, depar
         }, edit ? '收起' : '编辑')),
       edit ? h('div', { className: 'cb-dept-form' },
         h('input', {
-          className: 'cb-dept-input', value: edit.name, placeholder: '部门名称', 'aria-label': '部门名称', maxLength: 40,
+          className: 'cb-dept-input', value: edit.name, placeholder: '部门名称', 'aria-label': '部门名称', maxLength: 40, required: true,
           onChange: event => setEdit(state => ({ ...state, name: event.target.value })),
         }),
         h('input', {

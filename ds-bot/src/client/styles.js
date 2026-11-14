@@ -1215,6 +1215,75 @@ body[data-ds-dark-theme] .bt-theme-chip i{background:var(--da)}
 .cb-relation b{color:var(--bt-accent);font-size:8px;font-weight:650}
 body[data-cb-inspector=on] [class*="_centerCol"]{margin-right:272px}
 @media (max-width:1100px){.cb-inspector{display:none}body[data-cb-inspector=on] [class*="_centerCol"]{margin-right:0}}
+/* CompBotOrg · surface upgrade. Modern Web Guidance entry/exit states, one shared
+   easing, layered cards with a lit top rim, a single solid primary CTA, and a
+   still frame for reduced motion. All paint is static CSS: no WebGL, no scroll
+   loops, nothing animates once it has scrolled out of view. @starting-style is a
+   progressive enhancement — a browser without it simply shows the final state. */
+body{--bt-cb-ease:cubic-bezier(.2,.8,.2,1);--bt-cb-dur:220ms;--bt-cb-fast:140ms;--bt-cb-on-accent:#ffffff;--bt-cb-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 24px -14px rgba(0,0,0,.18);--bt-cb-rim:color-mix(in srgb,var(--bt-card) 92%,transparent)}
+body[data-ds-dark-theme]{--bt-cb-shadow:0 1px 2px rgba(0,0,0,.3),0 12px 28px -14px rgba(0,0,0,.6);--bt-cb-rim:color-mix(in srgb,var(--bt-card) 78%,transparent)}
+:is(.cb-nav,.cb-inspector){scrollbar-color:var(--bt-line-2) transparent;scrollbar-width:thin}
+/* Layered cards: a soft cast shadow plus a one-pixel lit top edge. */
+:is(.cb-ceo-card,.cb-block,.cb-inspector-hero,.cb-graph){box-shadow:var(--bt-cb-shadow),inset 0 1px 0 var(--bt-cb-rim)}
+:is(.cb-ceo-card,.cb-block,.cb-graph,.cb-inspector-hero){transition:border-color var(--bt-cb-fast) var(--bt-cb-ease),box-shadow var(--bt-cb-dur) var(--bt-cb-ease),translate var(--bt-cb-dur) var(--bt-cb-ease)}
+.cb-ceo-card:hover{border-color:color-mix(in srgb,var(--bt-accent) 45%,var(--bt-line));translate:0 -1px}
+.cb-graph-node:hover{border-color:var(--bt-line-2);translate:0 -1px}
+.cb-graph-node{transition:border-color var(--bt-cb-fast) var(--bt-cb-ease),translate var(--bt-cb-fast) var(--bt-cb-ease);border:1px solid transparent}
+.cb-block:has(.cb-dept-form){border-color:color-mix(in srgb,var(--bt-accent) 35%,var(--bt-line))}
+.cb-dept-form:has(.cb-dept-error){border-color:color-mix(in srgb,var(--bt-danger) 45%,var(--bt-line-2))}
+/* A tree, not a flat list: child departments get an elbow connector. */
+.cb-dept.is-child .cb-dept-row{position:relative}
+.cb-dept.is-child .cb-dept-row::before{content:'';position:absolute;left:6px;top:-4px;bottom:50%;width:6px;border-left:1px solid var(--bt-line-2);border-bottom:1px solid var(--bt-line-2);border-bottom-left-radius:6px;pointer-events:none}
+/* One primary CTA per surface. Secondary stays a quiet outline; destructive stays a ghost. */
+:is(.cb-dept-create,.cb-new-task,.cb-compose-send){background:var(--bt-accent);border-color:var(--bt-accent);color:var(--bt-cb-on-accent);font-weight:750;letter-spacing:.01em;box-shadow:0 2px 8px -3px color-mix(in srgb,var(--bt-accent) 60%,transparent),inset 0 1px 0 var(--bt-cb-rim);transition:filter var(--bt-cb-fast) var(--bt-cb-ease),scale var(--bt-cb-fast) var(--bt-cb-ease),box-shadow var(--bt-cb-dur) var(--bt-cb-ease)}
+:is(.cb-dept-create,.cb-new-task,.cb-compose-send):hover:not(:disabled){filter:brightness(1.08);box-shadow:0 4px 14px -4px color-mix(in srgb,var(--bt-accent) 70%,transparent),inset 0 1px 0 var(--bt-cb-rim)}
+:is(.cb-dept-create,.cb-new-task,.cb-compose-send):active:not(:disabled){scale:.98}
+.cb-dept-create:disabled{opacity:.45}
+.cb-dept-cancel{background:transparent;border-color:var(--bt-line-2);color:var(--bt-ink-2)}
+.cb-dept-cancel:hover{background:var(--bt-hover);color:var(--bt-ink)}
+.cb-dept-delete:hover:not(:disabled){border-color:color-mix(in srgb,var(--bt-danger) 50%,var(--bt-line))}
+/* Forms: a keyboard-only focus ring, :user-invalid only after the user has typed. */
+:is(.cb-dept-input,.cb-dept-select,.cb-search input,.cb-compose input,.cob-input,.cob-select){transition:border-color var(--bt-cb-fast) var(--bt-cb-ease),box-shadow var(--bt-cb-fast) var(--bt-cb-ease)}
+:is(.cb-dept-input,.cb-dept-select,.cb-search input,.cb-compose input,.cob-input,.cob-select):hover{border-color:var(--bt-line-2)}
+:is(.cb-dept-input,.cb-dept-select,.cb-search input,.cb-compose input,.cob-input,.cob-select):focus-visible{outline:0;border-color:var(--bt-accent);box-shadow:0 0 0 3px var(--bt-accent-soft)}
+:is(.cb-dept-input,.cob-input):user-invalid{border-color:var(--bt-danger);box-shadow:0 0 0 3px var(--bt-danger-soft)}
+:is(.cb-nav-tab,.cb-dept-row,.cb-project,.cb-employee,.cb-group,.cb-tab,.cb-managed-row,.cb-block-add,.cb-link,.cb-link-button,.cb-more,.cb-team-avatar,.cb-dept-create,.cb-dept-cancel,.cb-dept-delete,.cb-new-task,.cb-compose-send):focus-visible{outline:2px solid var(--bt-accent);outline-offset:2px}
+/* Entry states. The panel slides in; new form rows, action rows and errors rise in. */
+.cb-inspector{box-shadow:-12px 0 32px -18px rgba(0,0,0,.2);animation:cb-panel-in var(--bt-cb-dur) var(--bt-cb-ease) both}
+@keyframes cb-panel-in{from{opacity:0;translate:12px 0}to{opacity:1;translate:0 0}}
+:is(.cb-dept-form,.cb-action,.cb-dept-error){opacity:1;translate:0 0;transition:opacity var(--bt-cb-dur) var(--bt-cb-ease),translate var(--bt-cb-dur) var(--bt-cb-ease)}
+@starting-style{:is(.cb-dept-form,.cb-action,.cb-dept-error){opacity:0;translate:0 -6px}}
+/* The only loop in the sheet: a running Bot's status pulse. */
+.cb-dot{position:relative}
+.cb-dot-running::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:1px solid var(--bt-green);animation:cb-pulse 1.8s var(--bt-cb-ease) infinite;pointer-events:none}
+@keyframes cb-pulse{0%{opacity:.7;scale:.8}70%,100%{opacity:0;scale:1.5}}
+/* A footer-ish fade above the sticky action row; balanced headings. */
+.cb-nav-foot::before{content:'';position:absolute;left:0;right:0;top:-10px;height:10px;background:linear-gradient(to top,var(--bt-main),transparent);pointer-events:none}
+:is(.cb-hero-name,.cb-section h4,.cb-block-head strong){text-wrap:balance}
+/* The action log is the point of this surface, so it outranks the surrounding
+   chrome: real tool calls read at full ink, with tabular timestamps. */
+.cb-action{padding:6px 8px;gap:6px;border-left-color:color-mix(in srgb,var(--bt-accent) 45%,var(--bt-line))}
+.cb-action-kind{font-weight:700;letter-spacing:.02em}
+.cb-action-text{font-size:10px;line-height:15px;color:var(--bt-ink)}
+:is(.cb-action small,.cb-task-event){font-variant-numeric:tabular-nums}
+/* Empty states: a dashed well with a quiet glyph, not a bare sentence. The glyph
+   changes with the surface, so an empty department and an empty action log read
+   differently at a glance. */
+.cb-empty{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:1px dashed var(--bt-line);border-radius:10px;background:var(--bt-hover);font-size:9px;line-height:14px;color:var(--bt-ink-2);text-align:center;opacity:1;translate:0 0;transition:opacity var(--bt-cb-dur) var(--bt-cb-ease),translate var(--bt-cb-dur) var(--bt-cb-ease)}
+.cb-empty::before{content:'◌';display:grid;place-items:center;width:24px;height:24px;border:1px solid var(--bt-line);border-radius:8px;background:var(--bt-card);color:var(--bt-ink-3);font-size:13px;line-height:1}
+.cb-dept-members .cb-empty::before{content:'◇'}
+.cb-actions .cb-empty::before{content:'⌁'}
+.cb-project-list .cb-empty::before{content:'▤'}
+.cb-task-list .cb-empty::before{content:'✓'}
+@starting-style{.cb-empty{opacity:0;translate:0 6px}}
+@media (hover:none){:is(.cb-ceo-card,.cb-graph-node):hover{translate:none}}
+@media (prefers-reduced-motion:reduce){
+  .cb-inspector,.cb-dot-running::after{animation:none}
+  .cb-dot-running::after{display:none}
+  :is(.cb-ceo-card,.cb-block,.cb-graph,.cb-inspector-hero,.cb-graph-node,.cb-dept-form,.cb-action,.cb-dept-error,.cb-empty,.cb-dept-create,.cb-new-task,.cb-compose-send,.cb-dept-input,.cb-dept-select,.cb-search input,.cb-compose input,.cob-input,.cob-select){transition:none}
+  :is(.cb-dept-form,.cb-action,.cb-dept-error,.cb-empty){opacity:1;translate:none}
+  @starting-style{:is(.cb-dept-form,.cb-action,.cb-dept-error,.cb-empty){opacity:1;translate:none}}
+}
 
 `
 export const CONVERSATION_CSS = `

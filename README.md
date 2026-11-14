@@ -101,6 +101,9 @@ See [`docs/COMPBOTORG_DESIGN_BRIEF.md`](docs/COMPBOTORG_DESIGN_BRIEF.md) and [`P
 | 建 Bot 时直接定岗位 / 职级 / 部门 / 汇报对象，建完即入组织图 | ✅ 已实现，单测通过 |
 | 建部门（名称 / 职责 / 上级部门）、改名与调整上级、删除空部门；Inspector 里一键把 Bot 加进部门 | ✅ 已实现，单测通过 |
 | CEO 用 `organization_plan` 拆目标、`message_bot` 派人、`organization_task` 记录送达与验收 | ✅ 已实现（宿主原有能力） |
+| 组织层 UI：统一动效 token、`@starting-style` 入场态、卡片内高光、单一实心主 CTA、`:user-invalid` 校验、空态引导、`prefers-reduced-motion` 静帧 | ✅ 已实现，真实宿主线上验证通过 |
+
+界面取向参考了 `modern-web-guidance`（现代 CSS 状态与可访问性）、`motion-prompt`（入场态命名）、`cult-ui` / `scrolltide`（卡片与组件质感）、`scrollshaders`（动效性能纪律）、`footer.design` / `cta.gallery` / `styles.refero.design`（收尾与主次层级）。落地时做了明确取舍：**只用静态 CSS 渐变，不引入 WebGL 或滚动循环**；唯一的循环动画是运行中状态点的呼吸，且在 reduced-motion 下降为静帧；`@starting-style` 作为渐进增强，老浏览器直接显示终态。所有新增颜色沿用 `--bt-*` 主题变量，圆角与 spring 仍受 `style-debt` 约束。
 
 ## License
 
