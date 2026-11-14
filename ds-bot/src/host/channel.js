@@ -6,6 +6,7 @@ import { install as installSide } from './side.js'
 import { handoffReply, questionReply, viewReply } from './parts.js'
 import { validateViewAnswer } from 'deep-view/core'
 import { COLORS, EXTRA_COLORS, ROUTE } from './constants.js'
+import { addDepartment, assignEmployee, ensureOrganization, organizationView, removeRelation, setRelation, upsertProject } from './organization.js'
 
 const STAGED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
 const STAGED_MS = 30 * 60_000
@@ -65,6 +66,7 @@ export function install(rt) {
     // `mainBotId` is the first Main Bot, which the sidebar shows as its tile.
     mainBotId: state.mainBotIds[0] ?? null,
     mainBotIds: state.mainBotIds,
+    organization: organizationView(state),
     // `sessionId` is the Bot's current own-chat part; `parts` its earlier ones.
     // `waiting`: the Bot holds its greeting until the user picks its model or fixes
     // what failed it. `blocked`: the facts of a failure only the user can fix (turns.js).
@@ -339,6 +341,34 @@ export function install(rt) {
           const speaking = active ? [...rt.roomProgress.values()].filter(round => round.roomId === room.id).flatMap(round => round.slots.filter(slot => slot.status === 'speaking').map(slot => slot.id)) : []
           return ok({ ...view, active, speaking })
         }
+        case 'organization':
+          await rt.load()
+          return ok(organizationView(state))
+        case 'organization-department':
+          await rt.load()
+          ensureOrganization(state)
+          const department = addDepartment(state, body)
+          await rt.save()
+          return ok(organizationView(state))
+        case 'organization-relation':
+          await rt.load()
+          ensureOrganization(state)
+          if (body.action === 'remove') removeRelation(state, String(body.id ?? ''))
+          else setRelation(state, body)
+          await rt.save()
+          return ok(organizationView(state))
+        case 'organization-employee':
+          await rt.load()
+          ensureOrganization(state)
+          assignEmployee(state, body)
+          await rt.save()
+          return ok(organizationView(state))
+        case 'organization-project':
+          await rt.load()
+          ensureOrganization(state)
+          upsertProject(state, body)
+          await rt.save()
+          return ok(organizationView(state))
         case 'create-bot': {
           await rt.bootstrap()
           const bot = await rt.createBot({ name: body.name, role: body.role, color: body.color, instructions: body.instructions, brief: body.brief, avatar: body.avatar, model: body.model, effort: body.effort, workDir: body.workDir, section: body.section, sectionId: body.sectionId })
