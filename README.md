@@ -38,3 +38,11 @@ node --test ds-bot/src/host/organization.test.js
 ## License
 
 Apache-2.0 for the DSHBot-derived runtime. See upstream notices and third-party licenses in this repository.
+
+## UI Design Reference
+
+The UI must follow the original CompBotOrg design reference. The reference conversation is available here:
+
+https://chatgpt.com/s/m_6af7cf7a460881919da8896d884a754c
+
+See [`docs/COMPBOTORG_DESIGN_BRIEF.md`](docs/COMPBOTORG_DESIGN_BRIEF.md) and [`PROMPT_FOR_CODING_AGENT.md`](PROMPT_FOR_CODING_AGENT.md) before making frontend changes.
