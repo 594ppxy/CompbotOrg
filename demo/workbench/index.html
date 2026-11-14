@@ -2290,6 +2290,16 @@ window.DSCharacters = {"CHARACTERS":{"whale":{"label":"Whale","body":"M65.3 20.9
     return out;
   }
 
+  /* 非 SSE 的整包响应：content / text 都认，避免「明明有字却报空」 */
+  function readWhole(t) {
+    try {
+      var j = JSON.parse(t);
+      var c = j.choices && j.choices[0];
+      var body = c && (c.message || c.delta) || {};
+      return (typeof body.content === 'string' && body.content) ||
+        (typeof c.text === 'string' && c.text) || '';
+    } catch (e) { return '' }
+  }
   function aiRaw(system, messages, onDelta, onThink) {
     return new Promise(function (resolve, reject) {
       var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -2313,6 +2323,7 @@ window.DSCharacters = {"CHARACTERS":{"whale":{"label":"Whale","body":"M65.3 20.9
         reject(e);
         return;
       }
+      var raw = '';
       fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.key },
@@ -2399,6 +2410,7 @@ window.DSCharacters = {"CHARACTERS":{"whale":{"label":"Whale","body":"M65.3 20.9
         reject(e);
         return;
       }
+      var raw = '';
       fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.key },
@@ -2418,8 +2430,7 @@ window.DSCharacters = {"CHARACTERS":{"whale":{"label":"Whale","body":"M65.3 20.9
         var ct = res.headers.get('content-type') || '';
         if (ct.indexOf('text/event-stream') < 0) {
           return res.text().then(function (t) {
-            var j = JSON.parse(t);
-            var c = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '';
+            var c = readWhole(t);
             if (c) onDelta(c);
             return c;
           });
@@ -2427,31 +2438,52 @@ window.DSCharacters = {"CHARACTERS":{"whale":{"label":"Whale","body":"M65.3 20.9
         var reader = res.body.getReader(), dec = new TextDecoder(), buf = '', acc = '';
         function pump() {
           return reader.read().then(function (r) {
-            if (r.done) return acc;
-            buf += dec.decode(r.value, { stream: true });
+            if (r.done) {
+              /* 有些实现最后一块没有换行，留着会整段丢掉 */
+              if (buf.trim()) eat(buf.trim());
+              return acc;
+            }
+            var piece = dec.decode(r.value, { stream: true });
+            buf += piece;
+            if (raw.length < 300) raw += piece.slice(0, 300 - raw.length);
             var i;
             while ((i = buf.indexOf('\n')) >= 0) {
               var line = buf.slice(0, i).trim();
               buf = buf.slice(i + 1);
-              if (!line || line.indexOf('data:') !== 0) continue;
-              var p = line.slice(5).trim();
-              if (!p || p === '[DONE]') continue;
-              try {
-                var jj = JSON.parse(p);
-                var d = (jj.choices && jj.choices[0] && jj.choices[0].delta) || {};
-                if (d.content) { acc += d.content; onDelta(acc) }
-                else if (d.reasoning_content && onThink) onThink();
-              } catch (e) {}
+              eat(line);
             }
             return pump();
           });
+        }
+        function eat(line) {
+          if (!line || line.indexOf('data:') !== 0) return;
+          var p = line.slice(5).trim();
+          if (!p || p === '[DONE]') return;
+          try {
+            var jj = JSON.parse(p);
+            var ch = (jj.choices && jj.choices[0]) || {};
+            var d = ch.delta || ch.message || {};
+            var piece = typeof d.content === 'string' ? d.content
+              : typeof d.text === 'string' ? d.text
+              : typeof ch.text === 'string' ? ch.text
+              : typeof jj.delta === 'string' ? jj.delta
+              : typeof jj.content === 'string' ? jj.content : '';
+            if (piece) { acc += piece; onDelta(acc); return }
+            if ((d.reasoning_content || d.reasoning) && onThink) onThink();
+          } catch (e) { /* 非 JSON 的心跳或注释行，忽略 */ }
         }
         return pump();
       }).then(function (text) {
         clearTimeout(timer);
         abortCtl = null;
         var out = String(text || '').trim();
-        if (!out) throw new Error('模型返回空内容');
+        /* 空回复要说清是什么情况，而不是只丢一句「空内容」让人无从下手 */
+        if (!out) {
+          /* 带上收到的原始片段，省得用户只能拿着「空内容」四个字去猜 */
+          var hint = raw.replace(/\s+/g, ' ').trim().slice(0, 120);
+          throw new Error('模型返回空内容' + (hint ? '（收到：' + hint + '）' : '（响应里没有任何内容）') +
+            '，常见原因：额度用完、被安全策略拦下、或模型名不对');
+        }
         resolve(out);
       }).catch(function (e) {
         clearTimeout(timer);
