@@ -4,7 +4,7 @@
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import {
   RELATION_TYPES, addDecision, addDepartment, assignEmployee, organizationSummary,
-  planGoal, resolveDecision, setRelation, setTask, setTaskDelivery,
+  planGoal, removeDepartment, resolveDecision, setRelation, setTask, setTaskDelivery,
 } from './organization.js'
 
 const output = { schema: { type: 'string' }, render: (_args, value) => [{ type: 'text', text: String(value) }] }
@@ -145,12 +145,18 @@ export function install(rt) {
       role: { type: 'string', description: 'The Bot\'s organization role / job title, e.g. "技术负责人"' },
       level: { type: 'number', enum: [1, 2, 3, 4, 5], description: 'Job level: 5 决策层, 4 管理层, 3 主管, 2 骨干, 1 执行. It describes the org chart only and never changes DSH permissions.' },
       reports_to: { type: 'string', description: 'Exact Bot name this Bot reports to' },
+      remove: { type: 'string', description: 'Department name or id to delete. Only an empty department can go: move its members and sub-departments first.' },
     },
     output,
     async execute(args, exec) {
       if (!main(exec)) return 'Only the CEO (Main Bot) can change the organization.'
       await rt.load()
       try {
+        if (args.remove) {
+          const department = removeDepartment(state, { departmentId: String(args.remove).trim() })
+          await persist()
+          return `Department "${department.name}" is gone.`
+        }
         if (args.name) {
           const department = addDepartment(state, { name: args.name, description: args.description, parentId: args.parent })
           await persist()

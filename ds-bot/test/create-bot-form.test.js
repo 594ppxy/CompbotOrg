@@ -74,9 +74,9 @@ const collect = (match) => {
   return out
 }
 const button = text => collect(n => n.type === 'button' && flatten(n).join('') === text)[0]
-const render = (roster) => {
+const render = (roster, actions = {}) => {
   slots.length = 0
-  props = { roster: { bots: [], rooms: [], prefs: {}, ...roster }, actions: {}, onBack() {}, onCreated() {} }
+  props = { roster: { bots: [], rooms: [], prefs: {}, ...roster }, actions, onBack() {}, onCreated() {} }
   rerender()
 }
 
@@ -109,4 +109,39 @@ test('on Local agent, Create waits for a CLI', () => {
   assert.equal(button('Create').props.disabled, true)
   button('DS Bot model').props.onClick()
   assert.equal(button('Create').props.disabled, false)
+})
+
+test('a new Bot is placed in the org as it is created', async () => {
+  const calls = []
+  const actions = {
+    createBot: (payload) => { calls.push(['create-bot', payload]); return Promise.resolve({ id: 'new', name: payload.name }) },
+    organizationUpdate: (endpoint, payload) => { calls.push([endpoint, payload]); return Promise.resolve({}) },
+  }
+  render({
+    models: MODELS,
+    bots: [{ id: 'lead', name: 'Lead' }],
+    organization: { departments: [{ id: 'd1', name: '技术部' }], employees: [] },
+  }, actions)
+  collect(n => n.type === 'input' && n.props['aria-label'] === '岗位')[0].props.onChange({ target: { value: '技术负责人' } })
+  collect(n => n.type === 'select' && n.props['aria-label'] === '职级')[0].props.onChange({ target: { value: '4' } })
+  collect(n => n.type === 'select' && n.props['aria-label'] === '部门')[0].props.onChange({ target: { value: 'd1' } })
+  collect(n => n.type === 'select' && n.props['aria-label'] === '汇报对象')[0].props.onChange({ target: { value: 'lead' } })
+  button('Create').props.onClick()
+  await new Promise(resolve => setTimeout(resolve, 0))
+  assert.equal(calls[0][0], 'create-bot')
+  assert.equal(JSON.stringify(calls[1]), JSON.stringify(['organization-employee', {
+    botId: 'new', title: '技术负责人', level: 4, departmentId: 'd1', reportsTo: 'lead',
+  }]))
+})
+
+test('an unplaced new Bot sends no organization call at all', async () => {
+  const calls = []
+  const actions = {
+    createBot: (payload) => { calls.push(['create-bot']); return Promise.resolve({ id: 'new', name: payload.name }) },
+    organizationUpdate: (endpoint) => { calls.push([endpoint]); return Promise.resolve({}) },
+  }
+  render({ models: MODELS, organization: { departments: [], employees: [] } }, actions)
+  button('Create').props.onClick()
+  await new Promise(resolve => setTimeout(resolve, 0))
+  assert.equal(calls.length, 1)
 })

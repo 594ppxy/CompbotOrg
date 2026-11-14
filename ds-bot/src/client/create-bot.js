@@ -10,6 +10,8 @@ import { ModelMenu, useAgentModels } from './model-menu.js'
 import { CliList, ReadingModels, RunModeSwitch, useLocalAgents } from './agent-cards.js'
 import { agentAvatar, modelsFor, routeOf } from './agent-routes.js'
 import { hostText, t } from './i18n.js'
+import { PlacementFields } from './org-fields.js'
+import { placeBot } from './org-model.js'
 import { nameProblem } from '../shared/mentions.js'
 
 const pick = list => list[Math.floor(Math.random() * list.length)]
@@ -33,6 +35,9 @@ export function CreateBot({ roster, actions, start, brief = '', onBack, canGoBac
   const [effort, setEffort] = useState(undefined)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  // Where the Bot sits in the org. Filled here so a new Bot arrives with a job,
+  // a level, a department and a lead instead of being placed afterwards.
+  const [placement, setPlacement] = useState({ title: start?.title ?? '', level: start?.level, departmentId: start?.departmentId ?? '', reportsTo: start?.reportsTo ?? '' })
   const fileRef = useRef(null)
   const frame = useRef(null)
   const localAgents = useLocalAgents(mode === 'local')
@@ -53,6 +58,9 @@ export function CreateBot({ roster, actions, start, brief = '', onBack, canGoBac
     setBusy(true)
     try {
       const bot = await actions.createBot(createPayload({ name: finalName, look, image, model: chosen, effort: local ? undefined : effort, brief, ownLook, sectionId: start?.sectionId }))
+      // The Bot exists from here on; a placement that fails is not worth losing it
+      // over, and the same four fields are editable in its settings.
+      try { await placeBot(actions, bot.id, placement) } catch { /* place it from the Bot's settings */ }
       onCreated(bot)
     } catch (failure) {
       setError(failure?.message ?? String(failure))
@@ -112,6 +120,12 @@ export function CreateBot({ roster, actions, start, brief = '', onBack, canGoBac
         : modelsFor(roster.models).length > 0
           ? t('Pick a model here, or the Bot asks for one in its chat.')
           : t('Add a provider and a model in DeepSeek Harness first, or pick one in the Bot\'s chat later.'))) : null,
+    h('div', { className: 'bt-field' },
+      h('span', { className: 'bt-field-label' }, '组织'),
+      h(PlacementFields, {
+        roster, org: roster.organization ?? {}, botId: 'new-bot',
+        value: placement, onChange: setPlacement,
+      })),
     error ? h('div', { className: 'bt-error', role: 'alert', style: { padding: 0 } }, error) : null,
     h('div', { className: 'bt-create-foot' },
       h('button', { type: 'button', className: 'bt-soft', onClick: onBack }, canGoBack ? t('Back') : t('Cancel')),

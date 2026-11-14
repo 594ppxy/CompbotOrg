@@ -73,11 +73,44 @@ test('the organization job level is edited through the host channel', () => {
   }
   const nodes = walk(BotSettingsForm({ bot, roster, actions, run: fn => fn }))
   assert.ok(nodes.some(node => node.props?.label === '职级'))
-  const select = nodes.find(node => node.props?.className === 'bt-select bt-level-pick')
+  // The select is built by OrgSelect, so the row is asserted through its props.
+  const select = nodes.find(node => node.props?.label === '职级' && Array.isArray(node.props.options))
   assert.equal(select.props.value, '3')
-  const options = select.props.children.flat(Infinity).filter(node => node && node.type === 'option')
-  assert.equal(JSON.stringify(options.map(node => node.props.value)), JSON.stringify(['', '5', '4', '3', '2', '1']))
-  select.props.onChange({ target: { value: '4' } })
+  assert.equal(JSON.stringify(select.props.options.map(option => option.value)), JSON.stringify(['5', '4', '3', '2', '1']))
+  select.props.onChange('4')
   assert.equal(calls[0][0], 'organization-employee')
   assert.equal(JSON.stringify(calls[0][1]), JSON.stringify({ botId: 'b', level: 4 }))
+})
+
+test('岗位, 部门 and 汇报对象 save through the same host call', () => {
+  const calls = []
+  const roster = {
+    mainBotIds: [], mainBotId: null, rooms: [], models: [], memory: false,
+    bots: [{ id: 'b', name: 'Writer' }, { id: 'lead', name: 'Tech Lead' }],
+    organization: {
+      employees: [{ id: 'b', level: 3, organizationRole: '写手', departmentId: 'd1' }],
+      departments: [{ id: 'd1', name: '技术部' }, { id: 'd2', name: '产品部' }],
+      edges: [{ id: 'e1', from: 'b', to: 'lead', type: 'reports_to' }],
+    },
+  }
+  const actions = {
+    organizationUpdate: (endpoint, payload) => { calls.push([endpoint, payload]); return Promise.resolve({}) },
+  }
+  const nodes = walk(BotSettingsForm({ bot, roster, actions, run: fn => fn }))
+  const title = nodes.find(node => node.props?.label === '岗位' && 'value' in node.props)
+  assert.equal(title.props.value, '写手')
+
+  const department = nodes.find(node => node.props?.label === '部门' && Array.isArray(node.props.options))
+  assert.equal(department.props.value, 'd1')
+  department.props.onChange('d2')
+
+  const reportsTo = nodes.find(node => node.props?.label === '汇报对象' && Array.isArray(node.props.options))
+  assert.equal(reportsTo.props.value, 'lead')
+  reportsTo.props.onChange('')
+
+  // The Bot itself is never offered as its own lead.
+  assert.deepEqual(reportsTo.props.options.map(option => option.value), ['lead'])
+
+  assert.equal(JSON.stringify(calls[0]), JSON.stringify(['organization-employee', { botId: 'b', departmentId: 'd2' }]))
+  assert.equal(JSON.stringify(calls[1]), JSON.stringify(['organization-employee', { botId: 'b', reportsTo: '' }]))
 })

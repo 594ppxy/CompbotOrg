@@ -190,6 +190,53 @@ export function addDepartment(state, input = {}) {
   return department
 }
 
+// Renaming, re-parenting or re-describing a department. Nothing is cleared unless
+// the field was sent, so a partial edit cannot wipe the rest.
+export function updateDepartment(state, input = {}) {
+  const org = ensureOrganization(state)
+  const departmentId = clean(input.departmentId ?? input.id)
+  const department = org.departments.find(item => item.id === departmentId)
+  if (!department) throw Object.assign(new Error('Unknown department'), { code: 'bot/not-found' })
+  const name = clean(input.name)
+  if (name) {
+    if (org.departments.some(item => item.id !== department.id && item.name === name)) {
+      throw Object.assign(new Error('A department with that name already exists'), { code: 'bot/invalid' })
+    }
+    department.name = name.slice(0, 80)
+  }
+  if (input.description !== undefined) department.description = limit(input.description, 500)
+  if (input.parentId !== undefined) {
+    const parentId = clean(input.parentId)
+    if (parentId === department.id) throw Object.assign(new Error('A department cannot sit under itself'), { code: 'bot/invalid' })
+    if (parentId && !org.departments.some(item => item.id === parentId)) throw Object.assign(new Error('Unknown parent department'), { code: 'bot/not-found' })
+    // Walking up from the new parent must never come back to this department.
+    for (let cursor = parentId, guard = 0; cursor && guard < 32; guard += 1) {
+      if (cursor === department.id) throw Object.assign(new Error('That parent sits inside this department'), { code: 'bot/invalid' })
+      cursor = org.departments.find(item => item.id === cursor)?.parentId ?? null
+    }
+    department.parentId = parentId || null
+  }
+  logActivity(org, `更新部门 ${department.name}`)
+  return department
+}
+
+// Only an empty department can go: its members and sub-departments have to be moved
+// first, so a click here can never orphan a Bot.
+export function removeDepartment(state, input = {}) {
+  const org = ensureOrganization(state)
+  const departmentId = clean(input.departmentId ?? input.id)
+  const named = clean(input.name)
+  const department = org.departments.find(item => item.id === departmentId)
+    ?? (named ? org.departments.find(item => item.name === named) : undefined)
+  if (!department) throw Object.assign(new Error('Unknown department'), { code: 'bot/not-found' })
+  const members = Object.values(state.bots ?? {}).filter(bot => bot.departmentId === department.id)
+  if (members.length > 0) throw Object.assign(new Error(`Move ${members.length} member(s) out before deleting this department`), { code: 'bot/invalid' })
+  if (org.departments.some(item => item.parentId === department.id)) throw Object.assign(new Error('Delete its sub-departments first'), { code: 'bot/invalid' })
+  org.departments = org.departments.filter(item => item.id !== department.id)
+  logActivity(org, `删除部门 ${department.name}`)
+  return department
+}
+
 export function setRelation(state, input = {}) {
   const org = ensureOrganization(state)
   const from = clean(input.from)

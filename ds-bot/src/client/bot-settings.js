@@ -12,12 +12,12 @@ import { BotCapabilitiesCard } from './capability-settings.js'
 import { BotComputerCard } from './computer.js'
 import { AvatarLibraryPanel, avatarImage } from './avatar-library.js'
 import { useMemoryCount } from './memory-panel.js'
+import { OrgSelect } from './org-fields.js'
+import { departmentOptions, levelOptions, peerOptions, reportsToOf } from './org-model.js'
 import { SPRING_SHAPE, SPRING_TAP, spring, useGlide, useLinger } from './motion.js'
 import { t } from './i18n.js'
 
 const capitalize = word => word[0].toUpperCase() + word.slice(1)
-
-const LEVEL_CHOICES = [[5, '决策层'], [4, '管理层'], [3, '主管'], [2, '骨干'], [1, '执行']]
 
 // Settings save on blur or Enter, with no Save button; Escape puts the
 // saved value back. A required field never saves empty.
@@ -192,6 +192,13 @@ export function BotSettingsForm({ bot, roster, actions, run }) {
   const isMainBot = isMainOf(roster, bot.id)
   const orgEmployee = (roster.organization?.employees ?? []).find(item => item.id === bot.id)
   const level = orgEmployee?.level ?? null
+  const org = roster.organization ?? {}
+  const employeeDept = orgEmployee?.departmentId ?? ''
+  const reportsTo = reportsToOf(org, bot.id)
+  const reports = peerOptions(roster, bot.id)
+  // Every org field saves through the same host call, which answers with the whole
+  // organization view, so the left column and the inspector follow at once.
+  const orgSave = patch => run(actions.organizationUpdate?.('organization-employee', { botId: bot.id, ...patch }))
   const onlyMain = isMainBot && (roster.mainBotIds ?? []).length === 1
   const isTile = roster.mainBotId === bot.id
   const inGroup = (roster.rooms ?? []).some(room => room.members?.includes(bot.id))
@@ -214,16 +221,28 @@ export function BotSettingsForm({ bot, roster, actions, run }) {
         h('span', { className: 'bt-bs-sub' }, [bot.role, isMainBot ? t('Main Bot') : ''].filter(Boolean).join(' · ') || t('Bot')))),
     h(Card, { title: t('Profile') },
       h(Row, { label: t('Name') }, h(InlineText, { label: t('Name'), value: bot.name, placeholder: 'Bob', required: true, maxLength: 40, onSave: name => save({ name }) })),
-      h(Row, { label: t('Label'), hint: t('Optional. Shown under the name.') }, h(InlineText, { label: t('Label'), value: bot.role, placeholder: t('Research, admin…'), maxLength: 24, onSave: role => save({ role }) })),
+      h(Row, { label: t('Label'), hint: t('Optional. Shown under the name.') }, h(InlineText, { label: t('Label'), value: bot.role, placeholder: t('Research, admin…'), maxLength: 24, onSave: role => save({ role }) }))),
+    h(Card, { title: '组织' },
+      h(Row, { label: '岗位', hint: '组织图上显示的职位，如 技术负责人' },
+        h(InlineText, {
+          label: '岗位', value: orgEmployee?.organizationRole ?? bot.role ?? '', placeholder: '技术负责人', maxLength: 40,
+          onSave: title => orgSave({ title }),
+        })),
       h(Row, { label: '职级', hint: '只影响组织图，不改变 DSH 权限' },
-        h('select', {
-          className: 'bt-select bt-level-pick', value: String(level ?? ''), 'aria-label': '职级',
-          onChange: event => {
-            const picked = Number(event.target.value)
-            if (!picked) return
-            void Promise.resolve(actions.organizationUpdate?.('organization-employee', { botId: bot.id, level: picked })).catch(() => {})
-          },
-        }, h('option', { value: '' }, '未设定'), LEVEL_CHOICES.map(([value, label]) => h('option', { key: value, value: String(value) }, `L${value} · ${label}`))))),
+        h(OrgSelect, {
+          label: '职级', className: 'bt-select', value: level ? String(level) : '', none: '未设定', options: levelOptions(),
+          onChange: picked => { if (picked) orgSave({ level: Number(picked) }) },
+        })),
+      h(Row, { label: '部门', hint: '部门在左栏的「部门导航」里创建' },
+        h(OrgSelect, {
+          label: '部门', className: 'bt-select', value: employeeDept, none: '未分配部门', options: departmentOptions(org),
+          onChange: departmentId => orgSave({ departmentId }),
+        })),
+      reports.length ? h(Row, { label: '汇报对象', hint: '决定组织关系图里的上下级' },
+        h(OrgSelect, {
+          label: '汇报对象', className: 'bt-select', value: reportsTo, none: '直接向老板汇报', options: reports,
+          onChange: picked => orgSave({ reportsTo: picked }),
+        })) : null),
     h(RunModeCard, { bot, roster, actions, run, Card }),
     h(Card, { title: t('Model') },
       h('div', { className: 'bt-set-row bt-bs-row' },
@@ -293,6 +312,8 @@ label.bt-bs-row{cursor:text}
 .bt-bs-input:hover{background:var(--bt-hover)}
 .bt-bs-input:focus{background:var(--bt-main);border-color:var(--bt-line-2);text-align:left}
 .bt-bs-input::placeholder{color:var(--bt-ink-3)}
+.bt-select{flex:none;max-width:58%;height:30px;padding:0 6px;border:1px solid var(--bt-line);border-radius:8px;background:var(--bt-card);color:var(--bt-ink);font:inherit;font-size:12px;outline:none}
+.bt-select:focus{border-color:var(--bt-line-2)}
 .bt-bs-stack{flex-direction:column;align-items:stretch;gap:8px}
 .bt-bs-area{flex:none;width:auto;min-height:112px;height:auto;margin:0 -6px -4px;padding:8px;line-height:19px;text-align:left;resize:vertical;background:var(--bt-hover)}
 .bt-bs-area:hover{background:var(--bt-active)}

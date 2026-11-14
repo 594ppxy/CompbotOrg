@@ -2,8 +2,8 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
   addDecision, addDepartment, addTask, assignEmployee, ensureOrganization,
-  organizationSummary, organizationView, planGoal, recordAction, resolveDecision, setRelation,
-  setTask, setTaskDelivery, upsertProject,
+  organizationSummary, organizationView, planGoal, recordAction, removeDepartment, resolveDecision, setRelation,
+  setTask, setTaskDelivery, updateDepartment, upsertProject,
 } from '../src/host/organization.js'
 
 const team = () => ({
@@ -218,4 +218,44 @@ test('an action can be recorded from DSH and follows the running task', () => {
   assert.ok(task.history.some(entry => entry.kind === 'action' && /改动/.test(entry.text)))
   assert.equal(organizationView(state).currentActions.eng.text, action.text)
   assert.notEqual(JSON.stringify(state), before)
+})
+
+test('a department can be renamed, re-parented and described', () => {
+  const state = team()
+  ensureOrganization(state)
+  const tech = addDepartment(state, { name: '技术部' })
+  const front = addDepartment(state, { name: '前端组' })
+  updateDepartment(state, { departmentId: front.id, name: '前端平台组', description: '负责 Web 与桌面端', parentId: tech.id })
+  const stored = state.organization.departments.find(item => item.id === front.id)
+  assert.equal(stored.name, '前端平台组')
+  assert.equal(stored.description, '负责 Web 与桌面端')
+  assert.equal(stored.parentId, tech.id)
+  // An untouched field stays as it was.
+  updateDepartment(state, { departmentId: front.id, parentId: '' })
+  assert.equal(state.organization.departments.find(item => item.id === front.id).description, '负责 Web 与桌面端')
+  assert.equal(state.organization.departments.find(item => item.id === front.id).parentId, null)
+})
+
+test('a department cannot be renamed onto another, or nested inside itself', () => {
+  const state = team()
+  ensureOrganization(state)
+  const tech = addDepartment(state, { name: '技术部' })
+  const product = addDepartment(state, { name: '产品部' })
+  const front = addDepartment(state, { name: '前端组', parentId: tech.id })
+  assert.throws(() => updateDepartment(state, { departmentId: product.id, name: '技术部' }), /already exists/)
+  assert.throws(() => updateDepartment(state, { departmentId: tech.id, parentId: tech.id }), /under itself/)
+  // tech → front, so front cannot become tech's parent either.
+  assert.throws(() => updateDepartment(state, { departmentId: tech.id, parentId: front.id }), /inside this department/)
+})
+
+test('only an empty department can be deleted', () => {
+  const state = team()
+  ensureOrganization(state)
+  const tech = addDepartment(state, { name: '技术部' })
+  const front = addDepartment(state, { name: '前端组', parentId: tech.id })
+  assignEmployee(state, { botId: 'eng', departmentId: tech.id })
+  assert.throws(() => removeDepartment(state, { departmentId: tech.id }), /member/)
+  assert.throws(() => removeDepartment(state, { name: '技术部' }), /member/)
+  removeDepartment(state, { departmentId: front.id })
+  assert.equal(state.organization.departments.some(item => item.id === front.id), false)
 })

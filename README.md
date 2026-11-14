@@ -98,6 +98,8 @@ See [`docs/COMPBOTORG_DESIGN_BRIEF.md`](docs/COMPBOTORG_DESIGN_BRIEF.md) and [`P
 | 动作流水：把 Bot 在 DSH 里真实调用的工具、群内 `@Name` 派活、任务生命周期写进组织层 | ✅ 已实现，单测通过 |
 | 左栏成员显示职级与「此刻正在做的具体动作」，Inspector 显示动作流水与任务历史 | ✅ 已实现 |
 | 群内 `@Name` 派活与组织任务自动关联（真实投递仍由 `message_bot` / `post_to_group` / 群组轮次负责） | ✅ 已实现，单测通过 |
+| 建 Bot 时直接定岗位 / 职级 / 部门 / 汇报对象，建完即入组织图 | ✅ 已实现，单测通过 |
+| 建部门（名称 / 职责 / 上级部门）、改名与调整上级、删除空部门；Inspector 里一键把 Bot 加进部门 | ✅ 已实现，单测通过 |
 | CEO 用 `organization_plan` 拆目标、`message_bot` 派人、`organization_task` 记录送达与验收 | ✅ 已实现（宿主原有能力） |
 
 ## License

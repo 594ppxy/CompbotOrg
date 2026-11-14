@@ -4,6 +4,7 @@
 import { createElement as h, Fragment, useEffect, useMemo, useState } from 'react'
 import { BotAvatar } from './mark.js'
 import { chatRoom } from './frame-watch.js'
+import { OrgSelect } from './org-fields.js'
 
 const text = value => typeof value === 'string' ? value : (value == null ? '' : String(value))
 const clean = value => typeof value === 'string' ? value.trim() : ''
@@ -69,6 +70,9 @@ export function OrganizationNav({ useRoster, actions }) {
   const [query, setQuery] = useState('')
   const [compose, setCompose] = useState(false)
   const [draft, setDraft] = useState('')
+  const [deptDraft, setDeptDraft] = useState(null)
+  const [deptBusy, setDeptBusy] = useState(false)
+  const [deptError, setDeptError] = useState('')
   const employees = useMemo(() => org.employees ?? [], [org])
   const departments = org.departments ?? []
   const projects = org.projects ?? []
@@ -114,6 +118,36 @@ export function OrganizationNav({ useRoster, actions }) {
     setCompose(false)
   }
 
+  // A department may own sub-departments; children sit under their parent, indented.
+  const depthOf = (department) => {
+    let depth = 0
+    let cursor = department
+    for (let guard = 0; guard < 8 && cursor?.parentId; guard += 1) {
+      cursor = departments.find(item => item.id === cursor.parentId)
+      if (!cursor) break
+      depth += 1
+    }
+    return depth
+  }
+  const orderedDepartments = [...departments.filter(matches)].sort((a, b) => depthOf(a) - depthOf(b))
+
+  const createDepartment = () => {
+    const name = clean(deptDraft?.name)
+    if (!name || deptBusy) return
+    if (departments.some(item => item.name === name)) { setDeptError('已经有同名部门'); return }
+    setDeptBusy(true)
+    setDeptError('')
+    Promise.resolve(actions.organizationUpdate?.('organization-department', {
+      name,
+      description: clean(deptDraft?.description) || undefined,
+      parentId: deptDraft?.parentId || undefined,
+    })).then((view) => {
+      const created = (view?.departments ?? []).find(item => item.name === name)
+      setDeptDraft(null)
+      if (created) subject('department', created.id)
+    }).catch(error => setDeptError(error?.message ?? String(error))).finally(() => setDeptBusy(false))
+  }
+
   return h('div', { className: 'cb-nav' },
     h('div', { className: 'cb-nav-tabs', role: 'tablist', 'aria-label': '组织导航' },
       ICON_TABS.map(item => h('button', {
@@ -145,13 +179,44 @@ export function OrganizationNav({ useRoster, actions }) {
         h('strong', { className: item.tone ? `cb-ink-${item.tone}` : '' }, String(item.value ?? 0)),
         h('small', null, item.tone ? h(Fragment, null, h(StatusDot, { kind: item.tone === 'green' ? 'online' : item.tone }), item.label) : item.label))))),
     tab !== 'task' ? h('section', { className: 'cb-block' },
-      h('button', { type: 'button', className: 'cb-block-head cb-block-toggle', onClick: () => setOpenDepartments(state => ({ ...state, all: !state.all })) },
-        h('strong', null, '部门导航'), h('span', { className: 'cb-chevron' }, openDepartments.all ? '⌄' : '›')),
+      h('div', { className: 'cb-block-head' },
+        h('button', { type: 'button', className: 'cb-block-toggle', onClick: () => setOpenDepartments(state => ({ ...state, all: !state.all })) },
+          h('strong', null, '部门导航'), h('span', { className: 'cb-chevron' }, openDepartments.all ? '⌄' : '›')),
+        h('button', {
+          type: 'button', className: 'cb-block-add', 'aria-label': '新建部门', title: '新建部门',
+          onClick: () => { setDeptError(''); setDeptDraft(state => state ? null : { name: '', description: '', parentId: '' }) },
+        }, deptDraft ? '×' : '＋')),
+      deptDraft ? h('div', { className: 'cb-dept-form' },
+        h('input', {
+          className: 'cb-dept-input', autoFocus: true, value: deptDraft.name, placeholder: '部门名称，如 技术部',
+          'aria-label': '部门名称', maxLength: 40,
+          onChange: event => setDeptDraft(state => ({ ...state, name: event.target.value })),
+          onKeyDown: (event) => {
+            if (event.key === 'Enter' && !event.nativeEvent?.isComposing) createDepartment()
+            if (event.key === 'Escape') setDeptDraft(null)
+          },
+        }),
+        h('input', {
+          className: 'cb-dept-input', value: deptDraft.description, placeholder: '负责什么（可选）',
+          'aria-label': '部门职责', maxLength: 120,
+          onChange: event => setDeptDraft(state => ({ ...state, description: event.target.value })),
+        }),
+        h(OrgSelect, {
+          label: '上级部门', className: 'cb-dept-select', value: deptDraft.parentId, none: '直属管理层',
+          options: departments.map(item => ({ value: item.id, label: item.name })),
+          onChange: parentId => setDeptDraft(state => ({ ...state, parentId })),
+        }),
+        h('div', { className: 'cb-dept-form-row' },
+          h('button', { type: 'button', className: 'cb-dept-create', disabled: !clean(deptDraft.name) || deptBusy, onClick: createDepartment },
+            deptBusy ? '创建中…' : '创建部门'),
+          h('button', { type: 'button', className: 'cb-dept-cancel', onClick: () => setDeptDraft(null) }, '取消')),
+        deptError ? h('div', { className: 'cb-dept-error', role: 'alert' }, deptError) : null) : null,
       openDepartments.all !== false ? h('div', { className: 'cb-dept-list' },
-        departments.filter(matches).map(department => {
+        orderedDepartments.map(department => {
           const members = grouped.filter(employee => employee.departmentId === department.id)
           const open = openDepartments[department.id]
-          return h('div', { key: department.id, className: 'cb-dept' },
+          const depth = depthOf(department)
+          return h('div', { key: department.id, className: `cb-dept${depth ? ' is-child' : ''}` },
             h('button', { type: 'button', className: 'cb-dept-row', onClick: () => { setOpenDepartments(state => ({ ...state, [department.id]: !open })); subject('department', department.id) } },
               h('span', { className: 'cb-dept-icon' }, text(department.icon || '◈').slice(0, 2)),
               h('span', { className: 'cb-dept-name' }, text(department.name)),
@@ -215,6 +280,98 @@ function InfoRows({ rows }) {
   return h('div', { className: 'cb-info' }, rows.map(([label, value, tone]) => h('div', { className: 'cb-info-row', key: label },
     h('span', { className: 'cb-info-label' }, label),
     h('span', { className: `cb-info-value${tone ? ` cb-ink-${tone}` : ''}` }, value))))
+}
+
+// A department as its own subject: what it owns, who is in it, and the moves the
+// org chart needs most often — putting a Bot in, renaming, and closing it down.
+export function DepartmentPanel({ department, members, parent, childCount, departments, employees, roster, actions }) {
+  const [pick, setPick] = useState('')
+  const [edit, setEdit] = useState(null)
+  const [confirming, setConfirming] = useState(false)
+  const [error, setError] = useState('')
+  const blocked = members.length > 0 || childCount > 0
+  const join = (botId) => {
+    setPick('')
+    if (!botId) return
+    void Promise.resolve(actions.organizationUpdate?.('organization-employee', { botId, departmentId: department.id })).catch(() => {})
+  }
+  const save = () => {
+    const name = clean(edit?.name)
+    if (!name) { setError('部门名称不能为空'); return }
+    setError('')
+    Promise.resolve(actions.organizationUpdate?.('organization-department', {
+      action: 'update', departmentId: department.id, name,
+      description: clean(edit?.description), parentId: edit?.parentId ?? '',
+    })).then(() => setEdit(null)).catch(failure => setError(failure?.message ?? String(failure)))
+  }
+  const remove = () => {
+    if (blocked) return
+    if (!confirming) { setConfirming(true); return }
+    setError('')
+    Promise.resolve(actions.organizationUpdate?.('organization-department', { action: 'remove', departmentId: department.id }))
+      .then(() => { setConfirming(false); actions.setOrgSubject?.({ kind: 'employee', id: roster.mainBotId }) })
+      .catch(failure => { setConfirming(false); setError(failure?.message ?? String(failure)) })
+  }
+  return h(Fragment, null,
+    h('section', { className: 'cb-section' }, h('h4', null, '部门信息'),
+      h(InfoRows, { rows: [
+        ['名称', text(department.name)],
+        ['上级部门', parent ? text(parent.name) : '直属管理层'],
+        ['成员', `${members.length} 位`],
+        ['下级部门', childCount ? `${childCount} 个` : '无'],
+        ['职责', text(department.description) || '未填写'],
+      ] })),
+    h('section', { className: 'cb-section' },
+      h('div', { className: 'cb-section-head' }, h('h4', null, '部门设置'),
+        h('button', {
+          type: 'button', className: 'cb-link cb-link-button',
+          onClick: () => setEdit(edit ? null : { name: department.name, description: department.description ?? '', parentId: department.parentId ?? '' }),
+        }, edit ? '收起' : '编辑')),
+      edit ? h('div', { className: 'cb-dept-form' },
+        h('input', {
+          className: 'cb-dept-input', value: edit.name, placeholder: '部门名称', 'aria-label': '部门名称', maxLength: 40,
+          onChange: event => setEdit(state => ({ ...state, name: event.target.value })),
+        }),
+        h('input', {
+          className: 'cb-dept-input', value: edit.description, placeholder: '负责什么（可选）', 'aria-label': '部门职责', maxLength: 120,
+          onChange: event => setEdit(state => ({ ...state, description: event.target.value })),
+        }),
+        h(OrgSelect, {
+          label: '上级部门', className: 'cb-dept-select', value: edit.parentId, none: '直属管理层',
+          options: departments.filter(item => item.id !== department.id).map(item => ({ value: item.id, label: item.name })),
+          onChange: parentId => setEdit(state => ({ ...state, parentId })),
+        }),
+        h('div', { className: 'cb-dept-form-row' },
+          h('button', { type: 'button', className: 'cb-dept-create', onClick: save }, '保存'),
+          h('button', { type: 'button', className: 'cb-dept-cancel', onClick: () => { setEdit(null); setError('') } }, '取消'))) : null,
+      h('button', {
+        type: 'button', className: 'cb-dept-delete', disabled: blocked,
+        'data-confirm': confirming || undefined, onClick: remove,
+      }, confirming ? '再次点击确认删除' : '删除部门'),
+      blocked
+        ? h('div', { className: 'cb-dept-hint' }, members.length ? '先把部门成员移到别处，再删除' : '先删除它的下级部门')
+        : null,
+      error ? h('div', { className: 'cb-dept-error', role: 'alert' }, error) : null),
+    h('section', { className: 'cb-section' },
+      h('div', { className: 'cb-section-head' }, h('h4', null, `部门成员 (${members.length})`)),
+      members.length
+        ? h('div', { className: 'cb-dept-members cb-dept-members-flat' }, members.map(employee => h('button', {
+          type: 'button', className: 'cb-employee', key: employee.id,
+          onClick: () => { actions.setOrgSubject?.({ kind: 'employee', id: employee.id }); actions.openSession?.(employee.id) },
+        },
+        h(Avatar, { bot: roster.byId?.[employee.id], size: 22 }),
+        h('span', { className: 'cb-employee-copy' },
+          h('span', { className: 'cb-employee-line' }, text(employee.name), h(LevelTag, { level: employee.level })),
+          h('small', { className: 'cb-employee-do' }, text(employee.organizationRole || employee.role || '待命'))))))
+        : h('div', { className: 'cb-empty' }, '这个部门还没有成员'),
+      h('label', { className: 'cb-dept-add' },
+        h('span', null, '把成员加入本部门'),
+        h(OrgSelect, {
+          label: '加入本部门的成员', className: 'cob-select', value: pick, none: '选择一位 Bot',
+          options: employees.filter(employee => employee.departmentId !== department.id)
+            .map(employee => ({ value: employee.id, label: `${employee.name}${employee.organizationRole ? ` · ${employee.organizationRole}` : ''}` })),
+          onChange: join,
+        }))))
 }
 
 export function OrganizationInspector({ useRoster, useUi, actions }) {
@@ -283,22 +440,35 @@ export function OrganizationInspector({ useRoster, useUi, actions }) {
   const ownActions = orgActions.filter(action => action.botId === id).slice(-8).reverse()
   const current = currentActions[id]
   const level = employee?.level
+  // A department is a subject of its own: it has no status, no actions and no model.
+  const isDepartment = kind === 'department' && Boolean(department)
+  const departmentMembers = isDepartment ? employees.filter(item => item.departmentId === department.id) : []
+  const departmentParent = isDepartment ? departments.find(item => item.id === department.parentId) : undefined
 
   if (!visible) return null
 
   return h('aside', { className: 'cb-inspector', 'aria-label': '组织上下文' },
     h('div', { className: 'cb-inspector-hero' },
       h('div', { className: 'cb-hero-top' },
-        h(Avatar, { bot, size: 52 }),
+        isDepartment
+          ? h('span', { className: 'cb-hero-glyph' }, text(department.icon || '◈').slice(0, 2))
+          : h(Avatar, { bot, size: 52 }),
         h('div', { className: 'cb-hero-copy' },
-          h('div', { className: 'cb-hero-name' }, text(name), h(StatusDot, { kind: 'online' }), h('small', null, '在线')),
-          h('small', null, text(role)))),
+          h('div', { className: 'cb-hero-name' }, text(name),
+            isDepartment ? null : h(Fragment, null, h(StatusDot, { kind: 'online' }), h('small', null, '在线'))),
+          h('small', null, isDepartment ? `${departmentMembers.length} 位成员` : text(role)))),
       h('div', { className: 'cb-hero-quote' }, '「 让 AI 成为更强大的生产力 」')),
-    h('div', { className: 'cb-tabs', role: 'tablist' }, ['status', 'relation', 'task', 'ability'].map((key, index) => h('button', {
+    isDepartment ? null : h('div', { className: 'cb-tabs', role: 'tablist' }, ['status', 'relation', 'task', 'ability'].map((key, index) => h('button', {
       type: 'button', key, role: 'tab', 'aria-selected': tab === key,
       className: `cb-tab${tab === key ? ' is-current' : ''}`, onClick: () => setTab(key),
     }, ['状态', '关系', '任务', '能力'][index]))),
     h('div', { className: 'cb-inspector-body' },
+      isDepartment ? h(DepartmentPanel, {
+        department, members: departmentMembers, parent: departmentParent,
+        childCount: departments.filter(item => item.parentId === department.id).length,
+        departments, employees, roster, actions,
+      }) : null,
+      isDepartment ? null : h(Fragment, null,
       tab === 'status' ? h(Fragment, null,
         h('section', { className: 'cb-section' }, h('h4', null, '基本信息'),
           h(InfoRows, { rows: [
@@ -351,5 +521,5 @@ export function OrganizationInspector({ useRoster, useUi, actions }) {
         ['模型', text(employee?.model ?? 'DSH 默认')],
         ['组织角色', text(role)],
         ['参与项目', String(projects.filter(item => item.leadId === id).length)],
-      ] })) : null))
+      ] })) : null)))
 }
