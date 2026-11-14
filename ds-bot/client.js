@@ -15930,6 +15930,23 @@ body[data-ds-dark-theme] .bt-theme-chip i{background:var(--da)}
 .cb-task-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cb-task small{color:var(--bt-ink-3)}
 .cb-empty{padding:8px 4px;font-size:9px;color:var(--bt-ink-3);text-align:center}
+/* 职级徽章；成员行显示岗位与 DSH 里真实发生的动作 */
+.cb-lv{display:inline-flex;align-items:center;flex:none!important;padding:1px 4px;border-radius:4px;background:var(--bt-accent-soft);color:var(--bt-accent);font-size:8px;font-weight:700}
+.cb-employee .cb-employee-copy{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1;overflow:hidden}
+.cb-employee .cb-employee-line{display:flex;align-items:center;gap:4px;flex:none;min-width:0;overflow:hidden;white-space:nowrap;font-size:10px;color:var(--bt-ink-2)}
+.cb-employee .cb-employee-do{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:var(--bt-ink-3)}
+.cb-employee .cb-employee-do:not(:empty){color:var(--bt-accent)}
+.cb-actions{display:flex;flex-direction:column;gap:5px}
+.cb-action{display:flex;align-items:flex-start;gap:5px;padding:5px 6px;border-left:2px solid var(--bt-line);border-radius:6px;background:var(--bt-hover);font-size:9px}
+.cb-action-kind{flex:none;padding:1px 4px;border-radius:4px;background:var(--bt-tag-bg);color:var(--bt-tag-ink);font-size:8px}
+.cb-action-kind.cb-action-call,.cb-action-kind.cb-action-dispatch,.cb-action-kind.cb-action-claim{background:var(--bt-accent-soft);color:var(--bt-accent)}
+.cb-action-kind.cb-action-blocked{background:var(--bt-danger-soft);color:var(--bt-danger)}
+.cb-action-kind.cb-action-done,.cb-action-kind.cb-action-review{background:var(--bt-accent-soft);color:var(--bt-green)}
+.cb-action-text{flex:1;min-width:0;line-height:14px;word-break:break-word;color:var(--bt-ink-2)}
+.cb-action small{flex:none;font-size:8px;color:var(--bt-ink-3)}
+.cb-task{flex-wrap:wrap}
+.cb-task-history{display:flex;flex-direction:column;gap:2px;width:100%;padding:3px 0 0 4px;border-top:1px dashed var(--bt-line)}
+.cb-task-event{font-size:8px;line-height:12px;color:var(--bt-ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cb-nav-foot{position:sticky;bottom:0;margin-top:2px;padding:8px 0 4px;background:var(--bt-main);z-index:2}
 .cb-new-task,.cb-compose-send{width:100%;padding:9px;border:1px solid var(--bt-line);border-radius:10px;background:var(--bt-accent-soft);color:var(--bt-accent);font:inherit;font-size:11px;font-weight:700;cursor:pointer}
 .cb-new-task:hover{background:var(--bt-active)}
@@ -23569,6 +23586,7 @@ function MemoryDialog({ owner, actions, leaving = false }) {
 // src/client/bot-settings.js
 var import_react26 = require("react");
 var capitalize = (word) => word[0].toUpperCase() + word.slice(1);
+var LEVEL_CHOICES = [[5, "决策层"], [4, "管理层"], [3, "主管"], [2, "骨干"], [1, "执行"]];
 function InlineText({ label, value, placeholder, required = false, maxLength, multiline = false, onSave }) {
   const [draft, setDraft] = (0, import_react26.useState)(null);
   const reverting = (0, import_react26.useRef)(false);
@@ -23800,6 +23818,8 @@ function BotSettingsForm({ bot, roster, actions, run: run2 }) {
     return () => clearTimeout(timer);
   }, [confirming]);
   const isMainBot = isMainOf(roster, bot.id);
+  const orgEmployee = (roster.organization?.employees ?? []).find((item) => item.id === bot.id);
+  const level = orgEmployee?.level ?? null;
   const onlyMain = isMainBot && (roster.mainBotIds ?? []).length === 1;
   const isTile = roster.mainBotId === bot.id;
   const inGroup = (roster.rooms ?? []).some((room2) => room2.members?.includes(bot.id));
@@ -23842,7 +23862,22 @@ function BotSettingsForm({ bot, roster, actions, run: run2 }) {
       Card2,
       { title: t("Profile") },
       (0, import_react26.createElement)(Row, { label: t("Name") }, (0, import_react26.createElement)(InlineText, { label: t("Name"), value: bot.name, placeholder: "Bob", required: true, maxLength: 40, onSave: (name) => save({ name }) })),
-      (0, import_react26.createElement)(Row, { label: t("Label"), hint: t("Optional. Shown under the name.") }, (0, import_react26.createElement)(InlineText, { label: t("Label"), value: bot.role, placeholder: t("Research, admin…"), maxLength: 24, onSave: (role) => save({ role }) }))
+      (0, import_react26.createElement)(Row, { label: t("Label"), hint: t("Optional. Shown under the name.") }, (0, import_react26.createElement)(InlineText, { label: t("Label"), value: bot.role, placeholder: t("Research, admin…"), maxLength: 24, onSave: (role) => save({ role }) })),
+      (0, import_react26.createElement)(
+        Row,
+        { label: "职级", hint: "只影响组织图，不改变 DSH 权限" },
+        (0, import_react26.createElement)("select", {
+          className: "bt-select bt-level-pick",
+          value: String(level ?? ""),
+          "aria-label": "职级",
+          onChange: (event) => {
+            const picked = Number(event.target.value);
+            if (!picked) return;
+            void Promise.resolve(actions.organizationUpdate?.("organization-employee", { botId: bot.id, level: picked })).catch(() => {
+            });
+          }
+        }, (0, import_react26.createElement)("option", { value: "" }, "未设定"), LEVEL_CHOICES.map(([value, label]) => (0, import_react26.createElement)("option", { key: value, value: String(value) }, `L${value} · ${label}`)))
+      )
     ),
     (0, import_react26.createElement)(RunModeCard, { bot, roster, actions, run: run2, Card: Card2 }),
     (0, import_react26.createElement)(
@@ -27216,6 +27251,31 @@ var pct = (value) => Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
 var INSPECTOR_WIDTH = 272;
 var STATUS_LABEL = { pending: "待启动", running: "进行中", review: "待验收", blocked: "阻塞", done: "已完成" };
 var STATUS_CLASS = { pending: "pending", running: "running", review: "review", blocked: "blocked", done: "done" };
+var ACTION_LABEL = {
+  dispatch: "派发",
+  claim: "接单",
+  running: "执行",
+  review: "提交审核",
+  blocked: "受阻",
+  done: "完成",
+  call: "点名",
+  pending: "待启动",
+  step: "执行"
+};
+var LEVEL_LABEL = { 5: "决策层", 4: "管理层", 3: "主管", 2: "骨干", 1: "执行" };
+var LevelTag = ({ level }) => level ? (0, import_react34.createElement)("span", { className: "cb-lv", title: `L${level} ${LEVEL_LABEL[level] ?? ""}` }, `L${level}`) : null;
+var actionText = (action) => {
+  if (!action) return "";
+  if (action.text) return text(action.text);
+  return `${STATUS_LABEL[action.status] ?? action.status ?? ""} · ${text(action.taskTitle)}`.trim();
+};
+var timeOf = (at) => {
+  try {
+    return new Date(at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+  } catch {
+    return "";
+  }
+};
 var RELATION_LABEL = {
   manages: "管理",
   reports_to: "汇报给",
@@ -27257,7 +27317,9 @@ function OrganizationNav({ useRoster, actions }) {
   const projects = org.projects ?? [];
   const tasks = org.tasks ?? [];
   const stats = org.stats ?? {};
+  const currentActions = org.currentActions ?? {};
   const ceo = roster.byId?.[roster.mainBotId] ?? employees.find((employee) => employee.main);
+  const ceoEmployee = employees.find((employee) => employee.id === roster.mainBotId) ?? employees.find((employee) => employee.main);
   const q = clean(query).toLowerCase();
   const matches2 = (item) => !q || text(item.name ?? item.title).toLowerCase().includes(q);
   const subject = (kind, id) => actions.setOrgSubject?.({ kind, id });
@@ -27333,10 +27395,11 @@ function OrganizationNav({ useRoster, actions }) {
           "span",
           { className: "cb-ceo-name" },
           text(ceo.name || "CEO"),
+          (0, import_react34.createElement)(LevelTag, { level: ceoEmployee?.level }),
           (0, import_react34.createElement)(StatusDot, { kind: "online" }),
           (0, import_react34.createElement)("small", null, "在线")
         ),
-        (0, import_react34.createElement)("small", { className: "cb-ceo-role" }, `${ceo.organizationRole || ceo.role || "Chief Executive Officer"} · 全局调度`)
+        (0, import_react34.createElement)("small", { className: "cb-ceo-role" }, `${ceoEmployee?.organizationRole || ceo.organizationRole || ceo.role || "Chief Executive Officer"} · 全局调度`)
       ),
       (0, import_react34.createElement)("span", { className: "cb-chevron" }, "›")
     ) : null,
@@ -27388,7 +27451,12 @@ function OrganizationNav({ useRoster, actions }) {
               "button",
               { type: "button", className: "cb-employee", key: employee.id, onClick: () => openEmployee(employee) },
               (0, import_react34.createElement)(Avatar, { bot: roster.byId?.[employee.id], size: 22 }),
-              (0, import_react34.createElement)("span", null, text(employee.name)),
+              (0, import_react34.createElement)(
+                "span",
+                { className: "cb-employee-copy" },
+                (0, import_react34.createElement)("span", { className: "cb-employee-line" }, text(employee.name), (0, import_react34.createElement)(LevelTag, { level: employee.level })),
+                (0, import_react34.createElement)("small", { className: "cb-employee-do" }, actionText(currentActions[employee.id]) || text(employee.organizationRole || employee.role || "待命"))
+              ),
               (0, import_react34.createElement)(StatusDot, { kind: statusOfEmployee(employee) })
             )) : (0, import_react34.createElement)("div", { className: "cb-empty" }, "暂无员工")) : null
           );
@@ -27418,7 +27486,12 @@ function OrganizationNav({ useRoster, actions }) {
           "button",
           { type: "button", className: "cb-employee", key: employee.id, onClick: () => openEmployee(employee) },
           (0, import_react34.createElement)(Avatar, { bot: roster.byId?.[employee.id], size: 22 }),
-          (0, import_react34.createElement)("span", null, text(employee.name))
+          (0, import_react34.createElement)(
+            "span",
+            { className: "cb-employee-copy" },
+            (0, import_react34.createElement)("span", { className: "cb-employee-line" }, text(employee.name), (0, import_react34.createElement)(LevelTag, { level: employee.level })),
+            (0, import_react34.createElement)("small", { className: "cb-employee-do" }, actionText(currentActions[employee.id]) || "待命")
+          )
         ))) : null
       )
     ) : null,
@@ -27496,6 +27569,8 @@ function OrganizationInspector({ useRoster, useUi, actions }) {
   const projects = org.projects ?? [];
   const tasks = org.tasks ?? [];
   const edges = org.edges ?? [];
+  const orgActions = org.actions ?? [];
+  const currentActions = org.currentActions ?? {};
   const ceoId = roster.mainBotId;
   const visible = details === null || details === void 0;
   (0, import_react34.useEffect)(() => {
@@ -27540,6 +27615,9 @@ function OrganizationInspector({ useRoster, useUi, actions }) {
   const relations = edges.filter((edge) => edge.from === id || edge.to === id).slice(0, 10);
   const nameOf2 = (value) => value === "owner" ? "老板" : employees.find((item) => item.id === value)?.name ?? text(value);
   const joined = employee?.joinedAt ? new Date(employee.joinedAt).toISOString().slice(0, 10) : "2026-11-13";
+  const ownActions = orgActions.filter((action) => action.botId === id).slice(-8).reverse();
+  const current = currentActions[id];
+  const level = employee?.level;
   if (!visible) return null;
   return (0, import_react34.createElement)(
     "aside",
@@ -27580,10 +27658,28 @@ function OrganizationInspector({ useRoster, useUi, actions }) {
           (0, import_react34.createElement)("h4", null, "基本信息"),
           (0, import_react34.createElement)(InfoRows, { rows: [
             ["部门", department?.name ?? (employee?.departmentId ? departments.find((item) => item.id === employee.departmentId)?.name ?? "管理层" : "管理层")],
-            ["职位", kind === "project" ? "项目负责人" : text(role)],
+            ["岗位", kind === "project" ? "项目负责人" : text(role)],
+            ["职级", level ? `L${level} · ${LEVEL_LABEL[level] ?? ""}` : "未设定"],
             ["入职", text(joined)],
-            ["状态", (0, import_react34.createElement)(import_react34.Fragment, null, (0, import_react34.createElement)(StatusDot, { kind: "online" }), "在线 · 工作中"), "green"]
+            ["状态", (0, import_react34.createElement)(import_react34.Fragment, null, (0, import_react34.createElement)(StatusDot, { kind: "online" }), current ? STATUS_LABEL[current.status] ?? current.status : "在线"), "green"]
           ] })
+        ),
+        (0, import_react34.createElement)(
+          "section",
+          { className: "cb-section" },
+          (0, import_react34.createElement)(
+            "div",
+            { className: "cb-section-head" },
+            (0, import_react34.createElement)("h4", null, "当前动作"),
+            (0, import_react34.createElement)("span", { className: "cb-link" }, current ? text(current.taskTitle) : "")
+          ),
+          ownActions.length ? (0, import_react34.createElement)("div", { className: "cb-actions" }, ownActions.map((action) => (0, import_react34.createElement)(
+            "div",
+            { className: "cb-action", key: action.id },
+            (0, import_react34.createElement)("span", { className: `cb-action-kind cb-action-${STATUS_CLASS[action.kind] ?? "step"}` }, ACTION_LABEL[action.kind] ?? action.kind),
+            (0, import_react34.createElement)("span", { className: "cb-action-text" }, text(action.text)),
+            (0, import_react34.createElement)("small", null, timeOf(action.at))
+          ))) : (0, import_react34.createElement)("div", { className: "cb-empty" }, "DSH 开始执行后，这里会显示它实际做的每一步")
         ),
         (0, import_react34.createElement)(
           "section",
@@ -27652,7 +27748,8 @@ function OrganizationInspector({ useRoster, useUi, actions }) {
           { className: "cb-task", key: task.id },
           (0, import_react34.createElement)("span", { className: `cb-task-status cb-task-${STATUS_CLASS[task.status] ?? "pending"}` }, STATUS_LABEL[task.status] ?? text(task.status)),
           (0, import_react34.createElement)("span", { className: "cb-task-title" }, text(task.title)),
-          (0, import_react34.createElement)("small", null, `${pct(task.progress)}% · ${text(task.assignment?.status ?? "unassigned")}`)
+          (0, import_react34.createElement)("small", null, `${pct(task.progress)}% · ${text(task.assignment?.status ?? "unassigned")}`),
+          Array.isArray(task.history) && task.history.length ? (0, import_react34.createElement)("div", { className: "cb-task-history" }, task.history.slice(-3).reverse().map((entry) => (0, import_react34.createElement)("div", { className: "cb-task-event", key: entry.id }, text(entry.text)))) : null
         ))) : (0, import_react34.createElement)("div", { className: "cb-empty" }, "暂无任务")
       ) : null,
       tab === "ability" ? (0, import_react34.createElement)("section", { className: "cb-section" }, (0, import_react34.createElement)("h4", null, "能力"), (0, import_react34.createElement)(InfoRows, { rows: [

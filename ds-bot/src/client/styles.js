@@ -1125,6 +1125,23 @@ body[data-ds-dark-theme] .bt-theme-chip i{background:var(--da)}
 .cb-task-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cb-task small{color:var(--bt-ink-3)}
 .cb-empty{padding:8px 4px;font-size:9px;color:var(--bt-ink-3);text-align:center}
+/* 职级徽章；成员行显示岗位与 DSH 里真实发生的动作 */
+.cb-lv{display:inline-flex;align-items:center;flex:none!important;padding:1px 4px;border-radius:4px;background:var(--bt-accent-soft);color:var(--bt-accent);font-size:8px;font-weight:700}
+.cb-employee .cb-employee-copy{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1;overflow:hidden}
+.cb-employee .cb-employee-line{display:flex;align-items:center;gap:4px;flex:none;min-width:0;overflow:hidden;white-space:nowrap;font-size:10px;color:var(--bt-ink-2)}
+.cb-employee .cb-employee-do{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:var(--bt-ink-3)}
+.cb-employee .cb-employee-do:not(:empty){color:var(--bt-accent)}
+.cb-actions{display:flex;flex-direction:column;gap:5px}
+.cb-action{display:flex;align-items:flex-start;gap:5px;padding:5px 6px;border-left:2px solid var(--bt-line);border-radius:6px;background:var(--bt-hover);font-size:9px}
+.cb-action-kind{flex:none;padding:1px 4px;border-radius:4px;background:var(--bt-tag-bg);color:var(--bt-tag-ink);font-size:8px}
+.cb-action-kind.cb-action-call,.cb-action-kind.cb-action-dispatch,.cb-action-kind.cb-action-claim{background:var(--bt-accent-soft);color:var(--bt-accent)}
+.cb-action-kind.cb-action-blocked{background:var(--bt-danger-soft);color:var(--bt-danger)}
+.cb-action-kind.cb-action-done,.cb-action-kind.cb-action-review{background:var(--bt-accent-soft);color:var(--bt-green)}
+.cb-action-text{flex:1;min-width:0;line-height:14px;word-break:break-word;color:var(--bt-ink-2)}
+.cb-action small{flex:none;font-size:8px;color:var(--bt-ink-3)}
+.cb-task{flex-wrap:wrap}
+.cb-task-history{display:flex;flex-direction:column;gap:2px;width:100%;padding:3px 0 0 4px;border-top:1px dashed var(--bt-line)}
+.cb-task-event{font-size:8px;line-height:12px;color:var(--bt-ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cb-nav-foot{position:sticky;bottom:0;margin-top:2px;padding:8px 0 4px;background:var(--bt-main);z-index:2}
 .cb-new-task,.cb-compose-send{width:100%;padding:9px;border:1px solid var(--bt-line);border-radius:10px;background:var(--bt-accent-soft);color:var(--bt-accent);font:inherit;font-size:11px;font-weight:700;cursor:pointer}
 .cb-new-task:hover{background:var(--bt-active)}

@@ -13,6 +13,26 @@ export const INSPECTOR_WIDTH = 272
 
 const STATUS_LABEL = { pending: '待启动', running: '进行中', review: '待验收', blocked: '阻塞', done: '已完成' }
 const STATUS_CLASS = { pending: 'pending', running: 'running', review: 'review', blocked: 'blocked', done: 'done' }
+const ACTION_LABEL = {
+  dispatch: '派发', claim: '接单', running: '执行', review: '提交审核', blocked: '受阻',
+  done: '完成', call: '点名', pending: '待启动', step: '执行',
+}
+const LEVEL_LABEL = { 5: '决策层', 4: '管理层', 3: '主管', 2: '骨干', 1: '执行' }
+
+const LevelTag = ({ level }) => level
+  ? h('span', { className: 'cb-lv', title: `L${level} ${LEVEL_LABEL[level] ?? ''}` }, `L${level}`)
+  : null
+
+const actionText = (action) => {
+  if (!action) return ''
+  if (action.text) return text(action.text)
+  return `${STATUS_LABEL[action.status] ?? action.status ?? ''} · ${text(action.taskTitle)}`.trim()
+}
+
+const timeOf = at => {
+  try { return new Date(at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) } catch { return '' }
+}
+
 const RELATION_LABEL = {
   manages: '管理', reports_to: '汇报给', member_of: '隶属', collaborates: '协作',
   advisor_of: '顾问', project_lead: '负责项目', delegates_to: '委派',
@@ -54,7 +74,9 @@ export function OrganizationNav({ useRoster, actions }) {
   const projects = org.projects ?? []
   const tasks = org.tasks ?? []
   const stats = org.stats ?? {}
+  const currentActions = org.currentActions ?? {}
   const ceo = roster.byId?.[roster.mainBotId] ?? employees.find(employee => employee.main)
+  const ceoEmployee = employees.find(employee => employee.id === roster.mainBotId) ?? employees.find(employee => employee.main)
   const q = clean(query).toLowerCase()
   const matches = item => !q || text(item.name ?? item.title).toLowerCase().includes(q)
 
@@ -107,9 +129,10 @@ export function OrganizationNav({ useRoster, actions }) {
     ceo ? h('button', { type: 'button', className: 'cb-ceo-card', onClick: () => openEmployee(ceo) },
       h(Avatar, { bot: ceo, size: 40 }),
       h('span', { className: 'cb-ceo-copy' },
-        h('span', { className: 'cb-ceo-name' }, text(ceo.name || 'CEO'), h(StatusDot, { kind: 'online' }),
+        h('span', { className: 'cb-ceo-name' }, text(ceo.name || 'CEO'),
+          h(LevelTag, { level: ceoEmployee?.level }), h(StatusDot, { kind: 'online' }),
           h('small', null, '在线')),
-        h('small', { className: 'cb-ceo-role' }, `${ceo.organizationRole || ceo.role || 'Chief Executive Officer'} · 全局调度`)),
+        h('small', { className: 'cb-ceo-role' }, `${ceoEmployee?.organizationRole || ceo.organizationRole || ceo.role || 'Chief Executive Officer'} · 全局调度`)),
       h('span', { className: 'cb-chevron' }, '›')) : null,
     h('section', { className: 'cb-block' },
       h('div', { className: 'cb-block-head' }, h('strong', null, '组织概览'), h('span', { className: 'cb-link' }, '查看详情 ›')),
@@ -136,7 +159,10 @@ export function OrganizationNav({ useRoster, actions }) {
             open ? h('div', { className: 'cb-dept-members' }, members.length
               ? members.map(employee => h('button', { type: 'button', className: 'cb-employee', key: employee.id, onClick: () => openEmployee(employee) },
                 h(Avatar, { bot: roster.byId?.[employee.id], size: 22 }),
-                h('span', null, text(employee.name)),
+                h('span', { className: 'cb-employee-copy' },
+                  h('span', { className: 'cb-employee-line' }, text(employee.name), h(LevelTag, { level: employee.level })),
+                  h('small', { className: 'cb-employee-do' }, actionText(currentActions[employee.id])
+                    || text(employee.organizationRole || employee.role || '待命'))),
                 h(StatusDot, { kind: statusOfEmployee(employee) })))
               : h('div', { className: 'cb-empty' }, '暂无员工')) : null)
         }),
@@ -153,7 +179,10 @@ export function OrganizationNav({ useRoster, actions }) {
         onClick: () => setFilter(filter === item.id ? null : item.id),
       }, h(StatusDot, { kind: item.id === 'running' ? 'online' : item.id }), h('span', null, item.label), h('span', { className: 'cb-count' }, String(item.count)))),
       filter ? h('div', { className: 'cb-dept-members' }, listed.map(employee => h('button', { type: 'button', className: 'cb-employee', key: employee.id, onClick: () => openEmployee(employee) },
-        h(Avatar, { bot: roster.byId?.[employee.id], size: 22 }), h('span', null, text(employee.name))))) : null)) : null,
+        h(Avatar, { bot: roster.byId?.[employee.id], size: 22 }),
+        h('span', { className: 'cb-employee-copy' },
+          h('span', { className: 'cb-employee-line' }, text(employee.name), h(LevelTag, { level: employee.level })),
+          h('small', { className: 'cb-employee-do' }, actionText(currentActions[employee.id]) || '待命'))))) : null)) : null,
     tab !== 'task' ? h('section', { className: 'cb-block' },
       h('div', { className: 'cb-block-head' }, h('strong', null, '项目'), h('span', { className: 'cb-chevron' }, '⌄')),
       h('div', { className: 'cb-project-list' }, projects.filter(matches).slice(0, 8).map(project => h('button', { type: 'button', className: 'cb-project', key: project.id, onClick: () => subject('project', project.id) },
@@ -198,6 +227,8 @@ export function OrganizationInspector({ useRoster, useUi, actions }) {
   const projects = org.projects ?? []
   const tasks = org.tasks ?? []
   const edges = org.edges ?? []
+  const orgActions = org.actions ?? []
+  const currentActions = org.currentActions ?? {}
   const ceoId = roster.mainBotId
   const visible = details === null || details === undefined
 
@@ -249,6 +280,9 @@ export function OrganizationInspector({ useRoster, useUi, actions }) {
   const relations = edges.filter(edge => edge.from === id || edge.to === id).slice(0, 10)
   const nameOf = value => value === 'owner' ? '老板' : (employees.find(item => item.id === value)?.name ?? text(value))
   const joined = employee?.joinedAt ? new Date(employee.joinedAt).toISOString().slice(0, 10) : '2026-11-13'
+  const ownActions = orgActions.filter(action => action.botId === id).slice(-8).reverse()
+  const current = currentActions[id]
+  const level = employee?.level
 
   if (!visible) return null
 
@@ -269,10 +303,18 @@ export function OrganizationInspector({ useRoster, useUi, actions }) {
         h('section', { className: 'cb-section' }, h('h4', null, '基本信息'),
           h(InfoRows, { rows: [
             ['部门', department?.name ?? (employee?.departmentId ? departments.find(item => item.id === employee.departmentId)?.name ?? '管理层' : '管理层')],
-            ['职位', kind === 'project' ? '项目负责人' : text(role)],
+            ['岗位', kind === 'project' ? '项目负责人' : text(role)],
+            ['职级', level ? `L${level} · ${LEVEL_LABEL[level] ?? ''}` : '未设定'],
             ['入职', text(joined)],
-            ['状态', h(Fragment, null, h(StatusDot, { kind: 'online' }), '在线 · 工作中'), 'green'],
+            ['状态', h(Fragment, null, h(StatusDot, { kind: 'online' }), current ? STATUS_LABEL[current.status] ?? current.status : '在线'), 'green'],
           ] })),
+        h('section', { className: 'cb-section' },
+          h('div', { className: 'cb-section-head' }, h('h4', null, '当前动作'),
+            h('span', { className: 'cb-link' }, current ? text(current.taskTitle) : '')),
+          ownActions.length ? h('div', { className: 'cb-actions' }, ownActions.map(action => h('div', { className: 'cb-action', key: action.id },
+            h('span', { className: `cb-action-kind cb-action-${STATUS_CLASS[action.kind] ?? 'step'}` }, ACTION_LABEL[action.kind] ?? action.kind),
+            h('span', { className: 'cb-action-text' }, text(action.text)),
+            h('small', null, timeOf(action.at))))) : h('div', { className: 'cb-empty' }, 'DSH 开始执行后，这里会显示它实际做的每一步')),
         h('section', { className: 'cb-section' },
           h('div', { className: 'cb-section-head' }, h('h4', null, `下属团队 (${team.length})`), h('span', { className: 'cb-link' }, '查看全部 ›')),
           h('div', { className: 'cb-team-avatars' }, team.slice(0, 6).map(item => h('button', { type: 'button', key: item.id, className: 'cb-team-avatar', title: item.name, onClick: () => actions.setOrgSubject?.({ kind: 'employee', id: item.id }) },
@@ -300,7 +342,10 @@ export function OrganizationInspector({ useRoster, useUi, actions }) {
         ownTasks.length ? h('div', { className: 'cb-task-list' }, ownTasks.slice(0, 12).map(task => h('div', { className: 'cb-task', key: task.id },
           h('span', { className: `cb-task-status cb-task-${STATUS_CLASS[task.status] ?? 'pending'}` }, STATUS_LABEL[task.status] ?? text(task.status)),
           h('span', { className: 'cb-task-title' }, text(task.title)),
-          h('small', null, `${pct(task.progress)}% · ${text(task.assignment?.status ?? 'unassigned')}`)))) : h('div', { className: 'cb-empty' }, '暂无任务')) : null,
+          h('small', null, `${pct(task.progress)}% · ${text(task.assignment?.status ?? 'unassigned')}`),
+          Array.isArray(task.history) && task.history.length
+            ? h('div', { className: 'cb-task-history' }, task.history.slice(-3).reverse().map(entry => h('div', { className: 'cb-task-event', key: entry.id }, text(entry.text))))
+            : null))) : h('div', { className: 'cb-empty' }, '暂无任务')) : null,
       tab === 'ability' ? h('section', { className: 'cb-section' }, h('h4', null, '能力'), h(InfoRows, { rows: [
         ['类型', employee?.main ? 'Main Bot · CEO' : '专家 Bot'],
         ['模型', text(employee?.model ?? 'DSH 默认')],

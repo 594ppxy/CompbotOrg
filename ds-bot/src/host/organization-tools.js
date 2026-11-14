@@ -142,7 +142,8 @@ export function install(rt) {
       parent: { type: 'string', description: 'Optional parent department id' },
       bot: { type: 'string', description: 'Exact Bot name to place in a department' },
       department: { type: 'string', description: 'Department name or id to place the Bot in' },
-      role: { type: 'string', description: 'The Bot\'s organization role, e.g. "技术负责人"' },
+      role: { type: 'string', description: 'The Bot\'s organization role / job title, e.g. "技术负责人"' },
+      level: { type: 'number', enum: [1, 2, 3, 4, 5], description: 'Job level: 5 决策层, 4 管理层, 3 主管, 2 骨干, 1 执行. It describes the org chart only and never changes DSH permissions.' },
       reports_to: { type: 'string', description: 'Exact Bot name this Bot reports to' },
     },
     output,
@@ -165,10 +166,12 @@ export function install(rt) {
           botId: bot.id,
           departmentId: department?.id ?? null,
           role: args.role,
+          level: args.level,
           reportsTo: args.reports_to ? botIdOf(args.reports_to) : undefined,
         })
         await persist()
-        return `${bot.name} is ${department ? `in ${department.name}` : 'unassigned'}.`
+        const level = state.bots[bot.id]?.level
+        return `${bot.name} is ${department ? `in ${department.name}` : 'unassigned'}${level ? ` at L${level}` : ''}.`
       } catch (error) { return error.message }
     },
   }))

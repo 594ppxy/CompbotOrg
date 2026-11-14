@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
   addDecision, addDepartment, addTask, assignEmployee, ensureOrganization,
-  organizationSummary, organizationView, planGoal, resolveDecision, setRelation,
+  organizationSummary, organizationView, planGoal, recordAction, resolveDecision, setRelation,
   setTask, setTaskDelivery, upsertProject,
 } from '../src/host/organization.js'
 
@@ -167,4 +167,55 @@ test('legacy and dirty rows stay repairable instead of throwing or locking', () 
   addDecision(state, { title: '临时议题' })
   state.organization.decisions.push({ id: 'dirty_decision', status: 'pending' })
   assert.throws(() => resolveDecision(state, { decisionId: '查无此议题', answer: 'x' }), /Unknown decision/)
+})
+
+test('a Bot carries a job title and a level, without touching DSH permissions', () => {
+  const state = team()
+  const engineering = addDepartment(state, { name: '技术部' })
+  assignEmployee(state, { botId: 'eng', departmentId: engineering.id, title: '技术负责人', level: 3, reportsTo: 'ceo' })
+  const eng = organizationView(state).employees.find(employee => employee.id === 'eng')
+  assert.equal(eng.organizationRole, '技术负责人')
+  assert.equal(eng.level, 3)
+  assert.equal(eng.levelLabel, '主管')
+  const ceo = organizationView(state).employees.find(employee => employee.id === 'ceo')
+  assert.equal(ceo.level, 5)
+  assert.equal(ceo.levelLabel, '决策层')
+  assert.throws(() => assignEmployee(state, { botId: 'eng', level: 9 }), /Level must be/)
+  assert.equal(state.bots.eng.level, 3)
+  assert.equal(state.bots.eng.permissions, undefined)
+})
+
+test('task lifecycle records concrete actions and exposes the current one', () => {
+  const state = team()
+  const project = upsertProject(state, { name: '组织关系网' })
+  const task = addTask(state, { projectId: project.id, title: '补齐汇报关系', assigneeId: 'eng' })
+  setTaskDelivery(state, { taskId: task.id, status: 'dispatched', requestId: task.assignment.requestId })
+  setTaskDelivery(state, { taskId: task.id, status: 'acknowledged' })
+  setTask(state, { taskId: task.id, status: 'running' })
+  setTask(state, { taskId: task.id, status: 'review', report: '关系网补齐 6 个节点，自测 8/8 通过' })
+  const view = organizationView(state)
+  const own = view.actions.filter(action => action.botId === 'eng')
+  assert.deepEqual(own.map(action => action.kind), ['dispatch', 'claim', 'running', 'review'])
+  assert.match(own.at(-1).text, /自测 8\/8 通过/)
+  assert.equal(own.at(-1).taskId, task.id)
+  assert.ok(task.history.some(entry => entry.kind === 'action'))
+  assert.match(view.currentActions.eng.text, /自测 8\/8 通过/)
+  assert.equal(view.currentActions.eng.status, 'review')
+  assert.equal(view.currentActions.eng.taskId, task.id)
+})
+
+test('an action can be recorded from DSH and follows the running task', () => {
+  const state = team()
+  const project = upsertProject(state, { name: '接口联调' })
+  const task = addTask(state, { projectId: project.id, title: '补齐 /org 字段', assigneeId: 'eng' })
+  setTask(state, { taskId: task.id, status: 'running' })
+  const before = JSON.stringify(state)
+  const action = recordAction(state, {
+    botId: 'eng', kind: 'str_replace_editor', source: 'dsh',
+    text: 'str_replace_editor · 改动 src/host/organization.js 的汇报关系字段',
+  })
+  assert.equal(action.taskId, task.id)
+  assert.ok(task.history.some(entry => entry.kind === 'action' && /改动/.test(entry.text)))
+  assert.equal(organizationView(state).currentActions.eng.text, action.text)
+  assert.notEqual(JSON.stringify(state), before)
 })

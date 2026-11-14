@@ -10,6 +10,14 @@ export const RELATION_TYPES = new Set([
 // Goal → Project → Task → Assignment → Report → Review → Result.
 export const TASK_STATUSES = new Set(['pending', 'running', 'review', 'blocked', 'done'])
 export const DELIVERY_STATUSES = new Set(['unassigned', 'ready', 'dispatched', 'acknowledged', 'failed'])
+
+// 职级只描述岗位层级，不改变 DSH 的权限：L5 决策层 → L1 执行。
+export const LEVELS = { 5: '决策层', 4: '管理层', 3: '主管', 2: '骨干', 1: '执行' }
+export const levelOf = value => {
+  const n = Number(value)
+  return Number.isInteger(n) && n >= 1 && n <= 5 ? n : null
+}
+const defaultLevel = bot => bot?.main ? 5 : 2
 const STATUS_ALIASES = {
   pending: 'pending', 'not started': 'pending', todo: 'pending', 待办: 'pending', 待启动: 'pending',
   running: 'running', working: 'running', active: 'running', 'in progress': 'running', in_progress: 'running', 进行中: 'running', 工作中: 'running',
@@ -36,13 +44,13 @@ const EMPTY_ORG = () => ({
   version: 3,
   name: 'CompBotOrg',
   owner: { id: 'owner', name: '老板', role: 'Owner' },
-  departments: [], edges: [], projects: [], tasks: [], decisions: [], activity: [],
+  departments: [], edges: [], projects: [], tasks: [], decisions: [], activity: [], actions: [],
 })
 
 export function ensureOrganization(state) {
   if (!state.organization || typeof state.organization !== 'object' || Array.isArray(state.organization)) state.organization = EMPTY_ORG()
   const org = state.organization
-  for (const key of ['departments', 'edges', 'projects', 'tasks', 'decisions', 'activity']) {
+  for (const key of ['departments', 'edges', 'projects', 'tasks', 'decisions', 'activity', 'actions']) {
     if (!Array.isArray(org[key])) org[key] = []
   }
   if (!org.owner || typeof org.owner !== 'object') org.owner = { id: 'owner', name: '老板', role: 'Owner' }
@@ -54,6 +62,52 @@ function logActivity(org, text, kind = 'info') {
   org.activity = [...org.activity, { id: id('event'), at: stamp(), kind, text: limit(text, 300) }].slice(-60)
 }
 
+// An action is a record of work a Bot actually did in DSH, not a promise to do it.
+// `kind` is the lifecycle step or the tool that produced it; `text` is what it did.
+export function recordAction(state, input = {}) {
+  const org = ensureOrganization(state)
+  const botId = clean(input.botId)
+  const text = limit(input.text, 300)
+  if (!botId || !text) return null
+  const action = {
+    id: id('action'), botId, kind: limit(input.kind ?? 'step', 40) || 'step',
+    text, taskId: clean(input.taskId) || null,
+    source: clean(input.source) || 'dsh', at: stamp(),
+  }
+  org.actions = [...org.actions, action].slice(-300)
+  // Keep the work visible where the task is reviewed, not only in the global feed.
+  const task = action.taskId
+    ? org.tasks.find(item => item.id === action.taskId)
+    : org.tasks.find(item => item.assigneeId === botId && item.status === 'running')
+  if (task) {
+    action.taskId = task.id
+    taskEvent(task, 'action', `${action.kind}: ${action.text}`)
+  }
+  return action
+}
+
+// Read-only: what each Bot is doing right now, for the navigation column.
+function currentActionsOf(org) {
+  const tasks = org.tasks
+  const latest = new Map()
+  for (const action of org.actions) if (action.botId) latest.set(action.botId, action)
+  const out = {}
+  for (const task of tasks) {
+    if (!task.assigneeId) continue
+    const active = task.status === 'running' || task.status === 'review' || task.status === 'blocked'
+    if (!active) continue
+    const last = latest.get(task.assigneeId)
+    out[task.assigneeId] = {
+      status: task.status,
+      taskId: task.id,
+      taskTitle: task.title ?? '',
+      text: last && (!last.taskId || last.taskId === task.id) ? last.text : '',
+      kind: last?.kind ?? task.status,
+    }
+  }
+  return out
+}
+
 // A read-only projection. The Owner→CEO edge is derived, not stored: view() runs on
 // every roster poll and must never write to state.
 export function organizationView(state) {
@@ -63,17 +117,22 @@ export function organizationView(state) {
   if (ceo && !edges.some(edge => edge.from === 'owner' && edge.to === ceo && edge.type === 'manages')) {
     edges.push({ id: 'edge-owner-ceo', from: 'owner', to: ceo, type: 'manages' })
   }
-  const employees = Object.values(state.bots ?? {}).map(bot => ({
-    id: bot.id,
-    name: bot.name,
-    role: bot.role ?? '',
-    main: state.mainBotIds?.includes(bot.id) === true,
-    sectionId: bot.sectionId ?? null,
-    departmentId: bot.departmentId ?? null,
-    organizationRole: bot.organizationRole ?? bot.role ?? '',
-    model: bot.model ?? bot.appliedModel ?? null,
-    joinedAt: bot.createdAt ?? null,
-  }))
+  const employees = Object.values(state.bots ?? {}).map(bot => {
+    const level = levelOf(bot.level) ?? defaultLevel({ ...bot, main: state.mainBotIds?.includes(bot.id) === true })
+    return {
+      id: bot.id,
+      name: bot.name,
+      role: bot.role ?? '',
+      main: state.mainBotIds?.includes(bot.id) === true,
+      sectionId: bot.sectionId ?? null,
+      departmentId: bot.departmentId ?? null,
+      organizationRole: bot.organizationRole ?? bot.role ?? '',
+      level,
+      levelLabel: LEVELS[level],
+      model: bot.model ?? bot.appliedModel ?? null,
+      joinedAt: bot.createdAt ?? null,
+    }
+  })
   const tasks = org.tasks.map(task => ({ ...task }))
   const projects = org.projects.map(project => {
     const own = tasks.filter(task => task.projectId === project.id)
@@ -96,6 +155,9 @@ export function organizationView(state) {
   return {
     ...org,
     employees, departments, edges, projects, tasks, decisions,
+    actions: org.actions.slice(-120),
+    currentActions: currentActionsOf(org),
+    levels: LEVELS,
     stats: {
       employees: employees.length,
       departments: departments.length,
@@ -176,7 +238,13 @@ export function assignEmployee(state, input = {}) {
   if (departmentId && !org.departments.some(department => department.id === departmentId)) throw Object.assign(new Error('Unknown department'), { code: 'bot/not-found' })
   if (departmentId) bot.departmentId = departmentId
   else delete bot.departmentId
-  if (input.role !== undefined) bot.organizationRole = clean(input.role).slice(0, 80)
+  const title = input.title !== undefined ? clean(input.title) : clean(input.role)
+  if (input.title !== undefined || input.role !== undefined) bot.organizationRole = title.slice(0, 80)
+  if (input.level !== undefined && input.level !== '' && input.level !== null) {
+    const level = levelOf(input.level)
+    if (level === null) throw Object.assign(new Error('Level must be a whole number from 1 to 5'), { code: 'bot/invalid' })
+    bot.level = level
+  }
   if (input.reportsTo !== undefined) {
     org.edges = org.edges.filter(edge => !(edge.from === botId && edge.type === 'reports_to'))
     const reportsTo = clean(input.reportsTo)
@@ -270,6 +338,16 @@ export function setTask(state, input = {}) {
     throw Object.assign(new Error('A task needs a CEO review before completion'), { code: 'bot/invalid' })
   }
   if (status) task.status = status
+  if (status && status !== current) {
+    const label = { pending: '待启动', running: '开始执行', review: '提交审核', blocked: '受阻', done: '已完成' }[status]
+    const detail = status === 'review' ? (clean(input.report) || clean(task.report) || label)
+      : status === 'blocked' ? (clean(input.note) || label)
+        : status === 'done' ? (clean(input.review) || clean(task.review) || label) : label
+    recordAction(state, {
+      botId: task.assigneeId, kind: status, text: `「${task.title ?? ''}」${detail}`,
+      taskId: task.id, source: 'task',
+    })
+  }
   if (input.progress !== undefined) task.progress = pct(input.progress)
   if (status === 'done') task.progress = 100
   if (input.assigneeId !== undefined) {
@@ -308,6 +386,14 @@ export function setTaskDelivery(state, input = {}) {
   delivery.updatedAt = stamp()
   task.assignment = delivery
   task.updatedAt = stamp()
+  recordAction(state, {
+    botId: task.assigneeId,
+    kind: status === 'dispatched' ? 'dispatch' : status === 'acknowledged' ? 'claim' : 'blocked',
+    text: status === 'dispatched' ? `已被点名派发「${task.title ?? ''}」`
+      : status === 'acknowledged' ? `接单「${task.title ?? ''}」，开始执行`
+        : `派发受阻：${delivery.error || '未知原因'}`,
+    taskId: task.id, source: 'task',
+  })
   taskEvent(task, 'delivery', `Delegation ${status}${delivery.error ? `: ${delivery.error}` : ''}`)
   logActivity(org, `任务「${task.title}」委派${status}`, 'delivery')
   return task

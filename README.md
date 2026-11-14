@@ -4,6 +4,8 @@
 
 CompBotOrg is built on top of DeepSeek Harness / DSHBot. It keeps DSHBot's proven Bot runtime, Sessions, memory, `@`/group collaboration, `message_bot`, `post_to_group`, and Main Bot capabilities, while adding an organization layer for departments, management relations, projects, delegation, and executive reporting.
 
+> **The product is the DSHBot plugin in `ds-bot/`.** Every Bot really runs in a DSH Session, with DSH's agent loop, tools, permissions and memory. `demo/workbench/` is a standalone HTML design mockup used to try layout and copy; it does **not** run the product, does not use dsh, and its replies and task states are not the product's data. Do not add features to the mockup.
+
 ## Product model
 
 **老板 / Owner → CEO → 部门负责人 → 专家 Bot**
@@ -37,9 +39,11 @@ npm run lint
 node --test test/organization.test.js  # organization layer only
 ```
 
-`npm test` covers the whole suite (2191 tests), including the organization layer in `test/organization.test.js`.
+`npm test` covers the whole suite (2205 tests), including `test/organization.test.js` and `test/organization-activity.test.js`.
 
-## 独立可视化样机（联网版）
+## 独立可视化样机（仅设计验证，不是产品）
+
+> ⚠️ 这一节描述的是 `demo/workbench/` 里的**设计样机**，不是 CompBotOrg 的运行实现。它是浏览器里的单文件页面，直接请求 Agnes，不走 dsh、没有 Session、没有工具调用，里面的「任务执行」是文字协议模拟。真实产品是上面的 `ds-bot/` 插件。样机的用途仅限于验证三栏布局、文案与交互节奏，不要再往里面加功能或把它当成交付物。
 
 `demo/workbench/` 是一个零依赖的单 HTML 三栏工作台，可直接打开或托管到静态站点，用来验证交互与 AI 编排而不走宿主构建链。
 
@@ -80,11 +84,21 @@ See [`docs/COMPBOTORG_DESIGN_BRIEF.md`](docs/COMPBOTORG_DESIGN_BRIEF.md) and [`P
 | 组织图、任务模型、状态机、待决策 | ✅ 已实现 |
 | CEO 执行流（工具 + prompt + 前端 API 接线） | ✅ 已实现 |
 | 反馈闭环（员工报告 → CEO 验收 → 汇报） | ✅ 数据层已通，UI 在 Inspector「任务」页 |
-| 消息内嵌任务分解卡、动画、响应式、深浅色细化 | ✅ 已实现（`demo/workbench`） |
-| 独立样机接入真实模型 + 自动派活回写 | ✅ 已实现，实测通过 |
-| Bot 岗位/职级、DSHBot 风格头像、按需建群、群内下指令 | ✅ 已实现，实测通过 |
-| 任务真实执行（`[[STEP]]`/`[[REPORT]]`）与验收闭环 | ✅ 已实现，实测通过 |
-| 群内 @ 派活 + 复用 DSHBot 角色头像与选择器 | ✅ 已实现，实测通过 |
+| 消息内嵌任务分解卡、动画、响应式、深浅色细化 | 🧪 样机内可看，宿主侧未迁移 |
+| 独立样机接入真实模型 + 自动派活回写 | 🧪 仅样机（非产品数据） |
+| Bot 岗位/职级、按需建群、群内下指令 | 🧪 仅样机 |
+| 任务「执行」与验收闭环 | 🧪 仅样机的文字协议模拟 |
+| 群内 @ 派活 + 角色头像选择器 | 🧪 仅样机 |
+
+### 宿主侧（`ds-bot/`，真实运行）
+
+| 能力 | 状态 |
+|---|---|
+| Bot 自带岗位（`organizationRole`）与职级 `L1–L5`，不影响 DSH 权限 | ✅ 已实现，单测通过 |
+| 动作流水：把 Bot 在 DSH 里真实调用的工具、群内 `@Name` 派活、任务生命周期写进组织层 | ✅ 已实现，单测通过 |
+| 左栏成员显示职级与「此刻正在做的具体动作」，Inspector 显示动作流水与任务历史 | ✅ 已实现 |
+| 群内 `@Name` 派活与组织任务自动关联（真实投递仍由 `message_bot` / `post_to_group` / 群组轮次负责） | ✅ 已实现，单测通过 |
+| CEO 用 `organization_plan` 拆目标、`message_bot` 派人、`organization_task` 记录送达与验收 | ✅ 已实现（宿主原有能力） |
 
 ## License
 

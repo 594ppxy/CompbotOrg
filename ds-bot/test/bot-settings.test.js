@@ -61,3 +61,23 @@ test('a private Bot can always turn privacy off, and cannot become Main or be du
   assert.equal(tree.find(node => node.props?.label === 'Main Bot').props.disabled, true)
   assert.equal(tree.some(node => node.props?.onClick && node.props.className === 'bt-set-row bt-bs-row' && JSON.stringify(node).includes('Duplicate')), false)
 })
+
+test('the organization job level is edited through the host channel', () => {
+  const calls = []
+  const roster = {
+    mainBotIds: [], mainBotId: null, rooms: [], models: [], memory: false,
+    organization: { employees: [{ id: 'b', level: 3 }] },
+  }
+  const actions = {
+    organizationUpdate: (endpoint, payload) => { calls.push([endpoint, payload]); return Promise.resolve({}) },
+  }
+  const nodes = walk(BotSettingsForm({ bot, roster, actions, run: fn => fn }))
+  assert.ok(nodes.some(node => node.props?.label === '职级'))
+  const select = nodes.find(node => node.props?.className === 'bt-select bt-level-pick')
+  assert.equal(select.props.value, '3')
+  const options = select.props.children.flat(Infinity).filter(node => node && node.type === 'option')
+  assert.equal(JSON.stringify(options.map(node => node.props.value)), JSON.stringify(['', '5', '4', '3', '2', '1']))
+  select.props.onChange({ target: { value: '4' } })
+  assert.equal(calls[0][0], 'organization-employee')
+  assert.equal(JSON.stringify(calls[0][1]), JSON.stringify({ botId: 'b', level: 4 }))
+})

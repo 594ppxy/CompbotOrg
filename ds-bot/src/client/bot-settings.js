@@ -17,6 +17,8 @@ import { t } from './i18n.js'
 
 const capitalize = word => word[0].toUpperCase() + word.slice(1)
 
+const LEVEL_CHOICES = [[5, '决策层'], [4, '管理层'], [3, '主管'], [2, '骨干'], [1, '执行']]
+
 // Settings save on blur or Enter, with no Save button; Escape puts the
 // saved value back. A required field never saves empty.
 export function InlineText({ label, value, placeholder, required = false, maxLength, multiline = false, onSave }) {
@@ -188,6 +190,8 @@ export function BotSettingsForm({ bot, roster, actions, run }) {
     return () => clearTimeout(timer)
   }, [confirming])
   const isMainBot = isMainOf(roster, bot.id)
+  const orgEmployee = (roster.organization?.employees ?? []).find(item => item.id === bot.id)
+  const level = orgEmployee?.level ?? null
   const onlyMain = isMainBot && (roster.mainBotIds ?? []).length === 1
   const isTile = roster.mainBotId === bot.id
   const inGroup = (roster.rooms ?? []).some(room => room.members?.includes(bot.id))
@@ -210,7 +214,16 @@ export function BotSettingsForm({ bot, roster, actions, run }) {
         h('span', { className: 'bt-bs-sub' }, [bot.role, isMainBot ? t('Main Bot') : ''].filter(Boolean).join(' · ') || t('Bot')))),
     h(Card, { title: t('Profile') },
       h(Row, { label: t('Name') }, h(InlineText, { label: t('Name'), value: bot.name, placeholder: 'Bob', required: true, maxLength: 40, onSave: name => save({ name }) })),
-      h(Row, { label: t('Label'), hint: t('Optional. Shown under the name.') }, h(InlineText, { label: t('Label'), value: bot.role, placeholder: t('Research, admin…'), maxLength: 24, onSave: role => save({ role }) }))),
+      h(Row, { label: t('Label'), hint: t('Optional. Shown under the name.') }, h(InlineText, { label: t('Label'), value: bot.role, placeholder: t('Research, admin…'), maxLength: 24, onSave: role => save({ role }) })),
+      h(Row, { label: '职级', hint: '只影响组织图，不改变 DSH 权限' },
+        h('select', {
+          className: 'bt-select bt-level-pick', value: String(level ?? ''), 'aria-label': '职级',
+          onChange: event => {
+            const picked = Number(event.target.value)
+            if (!picked) return
+            void Promise.resolve(actions.organizationUpdate?.('organization-employee', { botId: bot.id, level: picked })).catch(() => {})
+          },
+        }, h('option', { value: '' }, '未设定'), LEVEL_CHOICES.map(([value, label]) => h('option', { key: value, value: String(value) }, `L${value} · ${label}`))))),
     h(RunModeCard, { bot, roster, actions, run, Card }),
     h(Card, { title: t('Model') },
       h('div', { className: 'bt-set-row bt-bs-row' },
