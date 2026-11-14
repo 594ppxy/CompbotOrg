@@ -27451,7 +27451,7 @@ function OrganizationNav({ useRoster, actions }) {
           { className: "cb-task", key: task.id },
           (0, import_react34.createElement)("span", { className: `cb-task-status cb-task-${STATUS_CLASS[task.status] ?? "pending"}` }, STATUS_LABEL[task.status] ?? text(task.status)),
           (0, import_react34.createElement)("span", { className: "cb-task-title" }, text(task.title)),
-          (0, import_react34.createElement)("small", null, `${pct(task.progress)}%`)
+          (0, import_react34.createElement)("small", null, `${pct(task.progress)}% · ${text(task.assignment?.status ?? "unassigned")}`)
         )),
         tasks.length === 0 ? (0, import_react34.createElement)("div", { className: "cb-empty" }, "等待 CEO 拆解目标") : null
       )
@@ -27652,7 +27652,7 @@ function OrganizationInspector({ useRoster, useUi, actions }) {
           { className: "cb-task", key: task.id },
           (0, import_react34.createElement)("span", { className: `cb-task-status cb-task-${STATUS_CLASS[task.status] ?? "pending"}` }, STATUS_LABEL[task.status] ?? text(task.status)),
           (0, import_react34.createElement)("span", { className: "cb-task-title" }, text(task.title)),
-          (0, import_react34.createElement)("small", null, `${pct(task.progress)}%`)
+          (0, import_react34.createElement)("small", null, `${pct(task.progress)}% · ${text(task.assignment?.status ?? "unassigned")}`)
         ))) : (0, import_react34.createElement)("div", { className: "cb-empty" }, "暂无任务")
       ) : null,
       tab === "ability" ? (0, import_react34.createElement)("section", { className: "cb-section" }, (0, import_react34.createElement)("h4", null, "能力"), (0, import_react34.createElement)(InfoRows, { rows: [

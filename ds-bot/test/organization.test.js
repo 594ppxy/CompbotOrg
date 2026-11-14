@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import {
   addDecision, addDepartment, addTask, assignEmployee, ensureOrganization,
   organizationSummary, organizationView, planGoal, resolveDecision, setRelation,
-  setTask, upsertProject,
+  setTask, setTaskDelivery, upsertProject,
 } from '../src/host/organization.js'
 
 const team = () => ({
@@ -86,6 +86,35 @@ test('tasks move through pending → running → review → done and keep their 
   assert.throws(() => setTask(state, { taskId: 'nope', status: 'done' }), /Unknown task/)
 })
 
+test('tasks require a valid assignee, a legal lifecycle and an auditable delivery receipt', () => {
+  const state = team()
+  const project = upsertProject(state, { name: '可靠委派' })
+  assert.throws(() => addTask(state, { projectId: project.id, title: '不存在的负责人', assigneeId: 'missing' }), /Unknown task assignee/)
+  const task = addTask(state, { projectId: project.id, title: '交付方案', assigneeId: 'eng' })
+  assert.equal(task.assignment.status, 'ready')
+  assert.equal(task.assignment.requestId, `task:${task.id}`)
+  setTaskDelivery(state, { taskId: task.id, status: 'dispatched', requestId: task.assignment.requestId })
+  setTaskDelivery(state, { taskId: task.id, status: 'acknowledged' })
+  assert.equal(task.assignment.status, 'acknowledged')
+  assert.equal(task.assignment.attempts, 1)
+  assert.throws(() => setTask(state, { taskId: task.id, status: 'done', review: '通过' }), /Invalid task transition/)
+  setTask(state, { taskId: task.id, status: 'running' })
+  assert.throws(() => setTask(state, { taskId: task.id, status: 'review' }), /needs a report/)
+  setTask(state, { taskId: task.id, status: 'review', report: '方案已提交' })
+  assert.throws(() => setTask(state, { taskId: task.id, status: 'done' }), /needs a CEO review/)
+  setTask(state, { taskId: task.id, status: 'done', review: '通过' })
+  assert.equal(task.status, 'done')
+  assert.ok(task.history.some(event => event.kind === 'delivery'))
+})
+
+test('a duplicated title must be addressed by task id', () => {
+  const state = team()
+  const project = upsertProject(state, { name: '重复任务' })
+  addTask(state, { projectId: project.id, title: '实现' })
+  addTask(state, { projectId: project.id, title: '实现' })
+  assert.throws(() => setTask(state, { taskId: '实现', status: 'running' }), /ambiguous/)
+})
+
 test('blocked work surfaces as a pending decision and closes with an answer', () => {
   const state = team()
   addDecision(state, { title: '是否外采模型', detail: '成本与合规' })
@@ -103,5 +132,5 @@ test('an old v1 organization is adopted without losing its graph', () => {
   assert.equal(view.name, 'Old Org')
   assert.equal(view.departments[0].memberCount, 0)
   assert.deepEqual(view.tasks, [])
-  assert.equal(state.organization.version, 2)
+  assert.equal(state.organization.version, 3)
 })

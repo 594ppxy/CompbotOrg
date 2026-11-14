@@ -9,6 +9,7 @@ export const RELATION_TYPES = new Set([
 
 // Goal → Project → Task → Assignment → Report → Review → Result.
 export const TASK_STATUSES = new Set(['pending', 'running', 'review', 'blocked', 'done'])
+export const DELIVERY_STATUSES = new Set(['unassigned', 'ready', 'dispatched', 'acknowledged', 'failed'])
 const STATUS_ALIASES = {
   pending: 'pending', 'not started': 'pending', todo: 'pending', 待办: 'pending', 待启动: 'pending',
   running: 'running', working: 'running', active: 'running', 进行中: 'running', 工作中: 'running',
@@ -23,9 +24,16 @@ const id = prefix => `${prefix}_${randomUUID().replaceAll('-', '').slice(0, 12)}
 const limit = (value, max) => clean(value).slice(0, max)
 const stamp = () => Date.now()
 const pct = value => Math.max(0, Math.min(100, Math.round(Number(value) || 0)))
+const TASK_TRANSITIONS = {
+  pending: new Set(['pending', 'running', 'blocked']),
+  running: new Set(['running', 'review', 'blocked']),
+  review: new Set(['review', 'running', 'blocked', 'done']),
+  blocked: new Set(['blocked', 'pending', 'running']),
+  done: new Set(['done', 'review']),
+}
 
 const EMPTY_ORG = () => ({
-  version: 2,
+  version: 3,
   name: 'CompBotOrg',
   owner: { id: 'owner', name: '老板', role: 'Owner' },
   departments: [], edges: [], projects: [], tasks: [], decisions: [], activity: [],
@@ -38,7 +46,7 @@ export function ensureOrganization(state) {
     if (!Array.isArray(org[key])) org[key] = []
   }
   if (!org.owner || typeof org.owner !== 'object') org.owner = { id: 'owner', name: '老板', role: 'Owner' }
-  org.version = 2
+  org.version = 3
   return org
 }
 
@@ -183,8 +191,23 @@ export function assignEmployee(state, input = {}) {
 function findTask(org, ref) {
   const key = clean(ref)
   if (!key) return undefined
-  return org.tasks.find(task => task.id === key)
-    ?? org.tasks.find(task => task.title.toLowerCase() === key.toLowerCase())
+  const byId = org.tasks.find(task => task.id === key)
+  if (byId) return byId
+  const matches = org.tasks.filter(task => task.title.toLowerCase() === key.toLowerCase())
+  if (matches.length > 1) throw Object.assign(new Error('Task title is ambiguous; use its id'), { code: 'bot/invalid' })
+  return matches[0]
+}
+
+function requireBot(state, value) {
+  const botId = clean(value)
+  if (botId && !state.bots?.[botId]) throw Object.assign(new Error('Unknown task assignee'), { code: 'bot/not-found' })
+  return botId || null
+}
+
+function taskEvent(task, kind, text) {
+  task.history = [...(Array.isArray(task.history) ? task.history : []), {
+    id: id('task_event'), at: stamp(), kind, text: limit(text, 300),
+  }].slice(-80)
 }
 
 export function addTask(state, input = {}) {
@@ -198,7 +221,7 @@ export function addTask(state, input = {}) {
     id: clean(input.id) || id('task'),
     projectId,
     title: title.slice(0, 200),
-    assigneeId: clean(input.assigneeId) || null,
+    assigneeId: requireBot(state, input.assigneeId),
     label: limit(input.label, 80),
     status,
     progress: status === 'done' ? 100 : pct(input.progress),
@@ -207,7 +230,17 @@ export function addTask(state, input = {}) {
     note: limit(input.note, 500),
     createdAt: stamp(),
     updatedAt: stamp(),
+    assignment: {
+      status: input.assigneeId ? 'ready' : 'unassigned',
+      requestId: input.assigneeId ? `task:${clean(input.id) || 'new'}` : null,
+      attempts: 0,
+      updatedAt: stamp(),
+      error: '',
+    },
+    history: [],
   }
+  task.assignment.requestId = task.assigneeId ? `task:${task.id}` : null
+  taskEvent(task, 'created', task.assigneeId ? 'Task created and ready for delegation.' : 'Task created without an assignee.')
   org.tasks.push(task)
   logActivity(org, `任务「${task.title}」${task.assigneeId ? '已分配' : '已创建'}`, 'task')
   return task
@@ -219,16 +252,56 @@ export function setTask(state, input = {}) {
   if (!task) throw Object.assign(new Error('Unknown task'), { code: 'bot/not-found' })
   const status = input.status === undefined ? null : taskStatus(input.status)
   if (input.status !== undefined && status === null) throw Object.assign(new Error('Unknown task status'), { code: 'bot/invalid' })
+  if (status && !TASK_TRANSITIONS[task.status]?.has(status)) {
+    throw Object.assign(new Error(`Invalid task transition: ${task.status} → ${status}`), { code: 'bot/invalid' })
+  }
+  if (status === 'review' && !(clean(input.report) || clean(task.report))) {
+    throw Object.assign(new Error('A task needs a report before review'), { code: 'bot/invalid' })
+  }
+  if (status === 'done' && !(clean(input.review) || clean(task.review))) {
+    throw Object.assign(new Error('A task needs a CEO review before completion'), { code: 'bot/invalid' })
+  }
   if (status) task.status = status
   if (input.progress !== undefined) task.progress = pct(input.progress)
   if (status === 'done') task.progress = 100
-  if (input.assigneeId !== undefined) task.assigneeId = clean(input.assigneeId) || null
+  if (input.assigneeId !== undefined) {
+    task.assigneeId = requireBot(state, input.assigneeId)
+    task.assignment = {
+      status: task.assigneeId ? 'ready' : 'unassigned',
+      requestId: task.assigneeId ? `task:${task.id}` : null,
+      attempts: 0,
+      updatedAt: stamp(),
+      error: '',
+    }
+    taskEvent(task, 'reassigned', task.assigneeId ? 'Task assignment changed and needs delegation.' : 'Task assignment was removed.')
+  }
   if (input.label !== undefined) task.label = limit(input.label, 80)
   if (input.report !== undefined) task.report = limit(input.report, 2000)
   if (input.review !== undefined) task.review = limit(input.review, 2000)
   if (input.note !== undefined) task.note = limit(input.note, 500)
   task.updatedAt = stamp()
+  taskEvent(task, 'updated', `Task is ${task.status} at ${task.progress}%.`)
   logActivity(org, `任务「${task.title}」→ ${task.status} · ${task.progress}%`, 'task')
+  return task
+}
+
+export function setTaskDelivery(state, input = {}) {
+  const org = ensureOrganization(state)
+  const task = findTask(org, input.taskId ?? input.id ?? input.task)
+  if (!task) throw Object.assign(new Error('Unknown task'), { code: 'bot/not-found' })
+  const status = clean(input.status)
+  if (!DELIVERY_STATUSES.has(status) || status === 'unassigned') throw Object.assign(new Error('Invalid delivery status'), { code: 'bot/invalid' })
+  if (!task.assigneeId) throw Object.assign(new Error('Assign the task before recording delivery'), { code: 'bot/invalid' })
+  const delivery = task.assignment && typeof task.assignment === 'object' ? task.assignment : { requestId: `task:${task.id}`, attempts: 0 }
+  if (status === 'dispatched') delivery.attempts = Math.max(0, Number(delivery.attempts) || 0) + 1
+  delivery.status = status
+  delivery.requestId = limit(input.requestId, 120) || delivery.requestId || `task:${task.id}`
+  delivery.error = status === 'failed' ? limit(input.error, 500) : ''
+  delivery.updatedAt = stamp()
+  task.assignment = delivery
+  task.updatedAt = stamp()
+  taskEvent(task, 'delivery', `Delegation ${status}${delivery.error ? `: ${delivery.error}` : ''}`)
+  logActivity(org, `任务「${task.title}」委派${status}`, 'delivery')
   return task
 }
 
@@ -309,7 +382,8 @@ export function organizationSummary(state) {
   for (const project of view.projects) {
     lines.push(`- Project "${project.name}" [${project.id}] ${project.status} ${project.progress}% lead ${nameOf(project.leadId) ?? 'unassigned'}`)
     for (const task of view.tasks.filter(task => task.projectId === project.id)) {
-      lines.push(`  - ${task.title} [${task.id}] ${task.status} ${task.progress}% → ${nameOf(task.assigneeId) ?? 'unassigned'}${task.label ? ` (${task.label})` : ''}`)
+      const delivery = task.assignment?.status ? ` · delivery ${task.assignment.status}${task.assignment.requestId ? ` [${task.assignment.requestId}]` : ''}` : ''
+      lines.push(`  - ${task.title} [${task.id}] ${task.status} ${task.progress}% → ${nameOf(task.assigneeId) ?? 'unassigned'}${task.label ? ` (${task.label})` : ''}${delivery}`)
     }
   }
   const loose = view.tasks.filter(task => !task.projectId)

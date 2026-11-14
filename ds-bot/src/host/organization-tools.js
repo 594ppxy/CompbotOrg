@@ -4,7 +4,7 @@
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import {
   RELATION_TYPES, addDecision, addDepartment, assignEmployee, organizationSummary,
-  planGoal, resolveDecision, setRelation, setTask,
+  planGoal, resolveDecision, setRelation, setTask, setTaskDelivery,
 } from './organization.js'
 
 const output = { schema: { type: 'string' }, render: (_args, value) => [{ type: 'text', text: String(value) }] }
@@ -32,7 +32,7 @@ export function install(rt) {
 
   rt.teamTools.push(defineTool({
     name: 'organization_plan',
-    description: 'Turn one Owner goal into a project, its task breakdown and assignments. Call this once when the Owner gives a goal that needs several people, then message the Bots named as assignees with message_bot and report back to the user. Reusing the same project name adds tasks to that project instead of making a second one.',
+    description: 'Turn one Owner goal into a project, its task breakdown and assignments. Every assigned task gets a stable delivery request id. After planning, send each task with message_bot using that id, then record it as dispatched with organization_task. Reusing the same project name adds tasks to that project instead of making a second one.',
     parameters: {
       goal: { type: 'string', required: true, description: 'The Owner\'s goal, in their words' },
       project: { type: 'string', description: 'Short project name; defaults to the first line of the goal' },
@@ -59,13 +59,19 @@ export function install(rt) {
       const self = main(exec)
       if (!self) return 'Only the CEO (Main Bot) can change the organization.'
       await rt.load()
-      const rows = (Array.isArray(args.tasks) ? args.tasks : []).map(item => ({
-        title: item?.title,
-        assigneeId: item?.assignee ? botIdOf(item.assignee) : null,
-        label: item?.label,
-        progress: item?.progress,
-        status: item?.status,
-      }))
+      if (args.lead && !botIdOf(args.lead)) return `No Bot named ${args.lead}. Check list_bots for an exact name.`
+      const rows = []
+      for (const item of (Array.isArray(args.tasks) ? args.tasks : [])) {
+        const assigneeId = item?.assignee ? botIdOf(item.assignee) : null
+        if (item?.assignee && !assigneeId) return `No Bot named ${item.assignee}. Check list_bots for an exact name.`
+        rows.push({
+          title: item?.title,
+          assigneeId,
+          label: item?.label,
+          progress: item?.progress,
+          status: item?.status,
+        })
+      }
       try {
         const { project, tasks } = planGoal(state, {
           goal: args.goal,
@@ -74,8 +80,8 @@ export function install(rt) {
           tasks: rows,
         })
         await persist()
-        const lines = tasks.map(task => `- ${task.title} → ${state.bots[task.assigneeId]?.name ?? 'unassigned'}`)
-        return `Project "${project.name}" [${project.id}] has ${tasks.length} tasks.\n${lines.join('\n')}\nMessage each assignee with message_bot, then tell the Owner what you asked for.`
+        const lines = tasks.map(task => `- ${task.title} [${task.id}] → ${state.bots[task.assigneeId]?.name ?? 'unassigned'}${task.assignment?.requestId ? ` (request_id ${task.assignment.requestId})` : ''}`)
+        return `Project "${project.name}" [${project.id}] has ${tasks.length} tasks.\n${lines.join('\n')}\nSend each assigned task once with message_bot using its request_id, then call organization_task with delivery "dispatched". The assignee acknowledges it with delivery "acknowledged" before reporting progress.`
       } catch (error) { return error.message }
     },
   }))
@@ -91,6 +97,9 @@ export function install(rt) {
       report: { type: 'string', description: 'The employee\'s result or report' },
       review: { type: 'string', description: 'Your review note as CEO' },
       note: { type: 'string', description: 'Short note, e.g. why a task is blocked' },
+      delivery: { type: 'string', enum: ['dispatched', 'acknowledged', 'failed'], description: 'Record delegation delivery. CEO records dispatched or failed after message_bot; the assigned employee records acknowledged before work.' },
+      request_id: { type: 'string', description: 'The message_bot request_id for this task delivery' },
+      delivery_error: { type: 'string', description: 'Why delivery failed, when delivery is failed' },
     },
     output,
     async execute(args, exec) {
@@ -101,6 +110,14 @@ export function install(rt) {
       // An employee may report on its own task; only the CEO may review or reassign.
       if (!self && current?.assigneeId !== rt.selfOf(exec.agent?.id)) return 'Only the CEO or the task\'s owner can change this task.'
       try {
+        if (args.delivery !== undefined) {
+          if (!self && args.delivery !== 'acknowledged') return 'Only the CEO can record a dispatched or failed delivery.'
+          const task = setTaskDelivery(state, {
+            taskId: args.task, status: args.delivery, requestId: args.request_id, error: args.delivery_error,
+          })
+          await persist()
+          return `Task "${task.title}" delegation is ${task.assignment.status}.`
+        }
         const task = setTask(state, {
           taskId: args.task,
           ...(args.status !== undefined && !self ? { status: args.status === 'done' ? 'review' : args.status } : { status: args.status }),

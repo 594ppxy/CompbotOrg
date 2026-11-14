@@ -6,7 +6,7 @@ import { install as installSide } from './side.js'
 import { handoffReply, questionReply, viewReply } from './parts.js'
 import { validateViewAnswer } from 'deep-view/core'
 import { COLORS, EXTRA_COLORS, ROUTE } from './constants.js'
-import { addDecision, addDepartment, addTask, assignEmployee, ensureOrganization, organizationView, planGoal, removeRelation, resolveDecision, setRelation, setTask, upsertProject } from './organization.js'
+import { addDecision, addDepartment, addTask, assignEmployee, ensureOrganization, organizationView, planGoal, removeRelation, resolveDecision, setRelation, setTask, setTaskDelivery, upsertProject } from './organization.js'
 
 const STAGED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
 const STAGED_MS = 30 * 60_000
@@ -380,6 +380,7 @@ export function install(rt) {
           await rt.load()
           ensureOrganization(state)
           if (body.action === 'add') addTask(state, body)
+          else if (body.action === 'delivery') setTaskDelivery(state, body)
           else setTask(state, body)
           await rt.save()
           return ok(organizationView(state))

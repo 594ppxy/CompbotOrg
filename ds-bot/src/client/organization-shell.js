@@ -166,7 +166,7 @@ export function OrganizationNav({ useRoster, actions }) {
       h('div', { className: 'cb-task-list' }, tasks.slice(0, 14).map(task => h('div', { className: 'cb-task', key: task.id },
         h('span', { className: `cb-task-status cb-task-${STATUS_CLASS[task.status] ?? 'pending'}` }, STATUS_LABEL[task.status] ?? text(task.status)),
         h('span', { className: 'cb-task-title' }, text(task.title)),
-        h('small', null, `${pct(task.progress)}%`))),
+        h('small', null, `${pct(task.progress)}% · ${text(task.assignment?.status ?? 'unassigned')}`))),
         tasks.length === 0 ? h('div', { className: 'cb-empty' }, '等待 CEO 拆解目标') : null)) : null,
     h('div', { className: 'cb-nav-foot' },
       compose ? h('div', { className: 'cb-compose' },
@@ -300,7 +300,7 @@ export function OrganizationInspector({ useRoster, useUi, actions }) {
         ownTasks.length ? h('div', { className: 'cb-task-list' }, ownTasks.slice(0, 12).map(task => h('div', { className: 'cb-task', key: task.id },
           h('span', { className: `cb-task-status cb-task-${STATUS_CLASS[task.status] ?? 'pending'}` }, STATUS_LABEL[task.status] ?? text(task.status)),
           h('span', { className: 'cb-task-title' }, text(task.title)),
-          h('small', null, `${pct(task.progress)}%`)))) : h('div', { className: 'cb-empty' }, '暂无任务')) : null,
+          h('small', null, `${pct(task.progress)}% · ${text(task.assignment?.status ?? 'unassigned')}`)))) : h('div', { className: 'cb-empty' }, '暂无任务')) : null,
       tab === 'ability' ? h('section', { className: 'cb-section' }, h('h4', null, '能力'), h(InfoRows, { rows: [
         ['类型', employee?.main ? 'Main Bot · CEO' : '专家 Bot'],
         ['模型', text(employee?.model ?? 'DSH 默认')],

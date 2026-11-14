@@ -1936,6 +1936,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
 
   /* ================= model connection ================= */
   var AI_STORE = 'cb.ai.config.v1';
+  var AI_KEY_STORE = 'cb.ai.key.session.v1';
   var AI = {
     base: 'https://apihub.agnes-ai.com/v1',
     key: '',
@@ -1951,36 +1952,35 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
       var raw = localStorage.getItem(AI_STORE);
       if (raw) {
         var o = JSON.parse(raw);
-        ['base', 'key', 'model', 'temp', 'max'].forEach(function (k) {
+        ['base', 'model', 'temp', 'max'].forEach(function (k) {
           if (o[k] !== undefined && o[k] !== null && o[k] !== '') AI[k] = o[k];
         });
       }
+      AI.key = sessionStorage.getItem(AI_KEY_STORE) || '';
     } catch (e) {}
-    /* one-shot key import via #k=sk-... — the fragment never reaches the server */
-    var mm = /(?:^|[#&])k=([^&]+)/.exec(location.hash || '');
-    if (mm) {
-      try {
-        AI.key = decodeURIComponent(mm[1]).trim();
-        aiSave();
-        try { history.replaceState(null, '', location.pathname + location.search) } catch (e) {}
-        setTimeout(function () { toast('已导入 API Key，模型已启用') }, 700);
-      } catch (e) {}
-    }
   }
   function aiSave() {
     try {
       localStorage.setItem(AI_STORE, JSON.stringify({
-        base: AI.base, key: AI.key, model: AI.model, temp: AI.temp, max: AI.max
+        base: AI.base, model: AI.model, temp: AI.temp, max: AI.max
       }));
+      if (AI.key) sessionStorage.setItem(AI_KEY_STORE, AI.key);
+      else sessionStorage.removeItem(AI_KEY_STORE);
     } catch (e) {}
   }
   function aiReady() { return !!(AI.key && AI.model) }
   function aiUrl() {
     var b = String(AI.base || '').trim().replace(/\/+$/, '');
     if (!b) b = 'https://apihub.agnes-ai.com/v1';
-    if (/\/chat\/completions$/.test(b)) return b;
-    if (!/\/v\d+$/.test(b)) b += '/v1';
-    return b + '/chat/completions';
+    var url;
+    try { url = new URL(b); } catch (e) { throw new Error('接口地址必须是有效的 HTTPS URL'); }
+    var local = url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname === '[::1]';
+    if (url.protocol !== 'https:' && !(url.protocol === 'http:' && local)) throw new Error('接口地址必须使用 HTTPS；本机 localhost 可使用 HTTP 进行开发')
+    if (!/\/chat\/completions$/.test(url.pathname)) {
+      if (!/\/v\d+$/.test(url.pathname)) url.pathname = url.pathname.replace(/\/$/, '') + '/v1';
+      url.pathname += '/chat/completions';
+    }
+    return url.toString();
   }
 
   function aiContext(empId) {
@@ -2150,8 +2150,14 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
   function aiTest(silent) {
     readAiForm();
     if (!AI.key) { toast('请先填写 API Key'); return }
+    var endpoint;
+    try { endpoint = aiUrl() } catch (e) {
+      AI.state = 'bad'; AI.err = aiExplain(e); render();
+      if (!silent) toast('连接失败：' + AI.err);
+      return;
+    }
     AI.state = 'busy';
-    fetch(aiUrl(), {
+    fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.key },
       body: JSON.stringify({
@@ -2844,7 +2850,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
         '<div class="cb-ai-actions"><button type="button" class="primary" data-act="ai:save">保存并测试</button>' +
         '<button type="button" data-act="ai:test">仅测试</button>' +
         '<button type="button" data-act="ai:clear">清除</button></div>' +
-        '<p class="cb-ai-hint">Key 只写在这台设备的 localStorage，不进入页面源码、不经过任何中转服务器。换设备或清缓存后需重新填写。' +
+        '<p class="cb-ai-hint">Key 只保存在当前浏览器标签页，关闭标签页即清除；不会写入 localStorage、页面源码或任何中转服务器。接口必须使用 HTTPS（本机 localhost 开发除外）。' +
         (AI.err ? '<br><span style="color:var(--bt-danger)">上次错误：' + esc(AI.err) + '</span>' : '') + '</p>' +
         '</div></div>';
       html += '<div class="cb-panel"><h5>怎么用</h5><div style="font-size:11px;line-height:18px;color:var(--bt-ink-2)">' +
@@ -2887,7 +2893,7 @@ h5.cb-md-h,h6.cb-md-h{font-size:11px;color:var(--bt-ink-2)}
         '<p style="margin:0 0 8px">' + (aiReady()
           ? '<b>当前已连接模型</b>：' + esc(AI.model) + '。对 CEO 说的话会带上组织架构、项目进度与任务清单一起提交，需要交办时前端会解析指令并真实创建任务。'
           : '<b>当前为演示模式</b>：组织、项目、任务数据为本地示例；对话回复由规则生成，<b>尚未连接模型</b>。到「设置 › 模型」填上 Key 即可切换为真实 AI。') + '</p>' +
-        '<p style="margin:0 0 8px">组织数据存在当前浏览器内存里，刷新会回到初始示例；模型配置存在 localStorage，刷新后保留。</p>' +
+        '<p style="margin:0 0 8px">组织数据存在当前浏览器内存里，刷新会回到初始示例；模型配置存在 localStorage，API Key 仅保存在当前标签页。</p>' +
         '<p style="margin:0">版本 v1.0 · 构建 2026-11-14</p></div></div>' +
         '<div class="cb-panel"><h5>数据</h5><div class="cb-kv">' +
         kv('员工', DB.employees.length + '') + kv('项目', DB.projects.length + '') +
