@@ -16149,6 +16149,8 @@ div:has(> nav [class*="_marks"]){display:none!important}
 @media (prefers-reduced-motion:reduce){.bt-btw-chevron{transition:none}}
 .cb-ceo-workspace{position:fixed;z-index:20;top:62px;left:calc(var(--dsh-sidebar-width,280px) + 18px);right:18px;max-width:980px;margin:auto;padding:14px 16px;border:1px solid var(--bt-line-2);border-radius:18px;background:color-mix(in srgb,var(--bt-card) 94%,transparent);backdrop-filter:blur(18px);box-shadow:0 16px 40px -18px rgba(0,0,0,.24);font-family:var(--bt-font);color:var(--bt-ink);pointer-events:none}.cb-ceo-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.cb-ceo-kicker{font-size:10px;letter-spacing:.14em;color:var(--bt-accent);font-weight:700}.cb-ceo-title{font-size:19px;font-weight:750;letter-spacing:-.02em;margin-top:2px}.cb-ceo-subtitle{font-size:11px;color:var(--bt-ink-2);margin-top:3px}.cb-ceo-metrics{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.cb-ceo-metrics span{padding:5px 8px;border-radius:999px;background:var(--bt-tag-bg);font-size:10px;color:var(--bt-tag-ink)}.cb-ceo-cards{display:flex;gap:8px;margin-top:11px;overflow:hidden}.cb-ceo-card{min-width:150px;max-width:240px;flex:1;padding:10px 11px;border-radius:12px;background:var(--bt-hover);border:1px solid var(--bt-line);display:flex;flex-direction:column;gap:3px}.cb-ceo-card-goal{border-color:color-mix(in srgb,var(--bt-accent) 35%,var(--bt-line));background:var(--bt-accent-soft)}.cb-ceo-card-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--bt-ink-3)}.cb-ceo-card strong{font-size:12px;line-height:16px}.cb-ceo-card span{font-size:10px;color:var(--bt-ink-2);line-height:14px}.cb-ceo-team-list{display:flex;flex-wrap:wrap;gap:4px}.cb-ceo-team-list span{padding:3px 6px;border-radius:7px;background:var(--bt-card);font-size:10px}.cb-ceo-inspector{position:fixed;z-index:19;right:18px;top:250px;width:248px;padding:14px;border:1px solid var(--bt-line-2);border-radius:16px;background:color-mix(in srgb,var(--bt-card) 92%,transparent);backdrop-filter:blur(16px);box-shadow:0 14px 36px -18px rgba(0,0,0,.2);font-family:var(--bt-font);color:var(--bt-ink);pointer-events:none}.cb-ceo-inspector-title{font-size:12px;font-weight:700;margin-bottom:8px}.cb-ceo-inspector-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bt-line);font-size:11px}.cb-ceo-inspector-row span{color:var(--bt-ink-2)}.cb-ceo-inspector-rel{margin-top:12px}.cb-ceo-relations{display:flex;flex-direction:column;gap:7px}.cb-ceo-relations>div{display:grid;grid-template-columns:8px 1fr auto;gap:6px;align-items:center;font-size:11px}.cb-ceo-relations small{color:var(--bt-ink-3);font-size:9px}.cb-ceo-dot{width:6px;height:6px;border-radius:50%;background:var(--bt-green)}
 @media (max-width:1100px){.cb-ceo-workspace{left:calc(var(--dsh-sidebar-width,88px) + 10px);right:10px}.cb-ceo-inspector{display:none}}@media (max-width:760px){.cb-ceo-workspace{top:54px;left:8px;right:8px;padding:10px}.cb-ceo-cards{display:none}.cb-ceo-subtitle{display:none}}
+.cb-ceo-workspace{max-width:1180px;top:56px;padding:16px 18px;border-radius:20px;max-height:calc(100vh - 82px);overflow:auto}.cb-ceo-flow{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end}.cb-ceo-flow>span:not(.cb-ceo-flow-arrow){padding:5px 8px;border-radius:999px;background:var(--bt-tag-bg);font-size:9px}.cb-ceo-flow>span.is-current{background:var(--bt-accent-soft);color:var(--bt-accent);font-weight:700}.cb-ceo-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.cb-ceo-kpi{padding:10px 12px;border:1px solid var(--bt-line);border-radius:13px;background:var(--bt-hover);display:grid;grid-template-columns:1fr auto}.cb-ceo-kpi span,.cb-ceo-kpi small{grid-column:1;font-size:9px;color:var(--bt-ink-3)}.cb-ceo-kpi strong{grid-column:2;grid-row:1/3;font-size:22px}.cb-ceo-main-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(230px,.75fr);gap:10px;margin-top:10px}.cb-ceo-primary-column,.cb-ceo-side-column{display:flex;flex-direction:column;gap:10px}.cb-ceo-panel{padding:12px;border:1px solid var(--bt-line);border-radius:15px;background:color-mix(in srgb,var(--bt-card) 92%,transparent)}.cb-ceo-panel-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px}.cb-ceo-panel-kicker{font-size:8px;letter-spacing:.12em;color:var(--bt-ink-3);font-weight:750}.cb-ceo-panel-head h3{font-size:13px;margin:2px 0 0}.cb-ceo-command-body{display:flex;gap:10px;align-items:center;padding:11px;border-radius:12px;background:var(--bt-hover)}.cb-ceo-command-body strong{font-size:12px}.cb-ceo-command-body p{font-size:10px;line-height:14px;color:var(--bt-ink-2);margin:3px 0 0}.cb-ceo-project-list,.cb-ceo-employee-list,.cb-ceo-relations{display:flex;flex-direction:column;gap:6px}.cb-ceo-project{padding:9px;border-radius:11px;background:var(--bt-hover);border:1px solid var(--bt-line)}.cb-ceo-project-top{display:flex;gap:8px;align-items:center}.cb-ceo-project-mark,.cb-ceo-avatar{display:grid;place-items:center;border-radius:8px;background:var(--bt-accent-soft);color:var(--bt-accent);font-weight:800}.cb-ceo-project-mark{width:28px;height:28px;font-size:9px}.cb-ceo-project-title{display:flex;flex-direction:column;min-width:0;flex:1}.cb-ceo-project-title strong{font-size:11px}.cb-ceo-project-title span,.cb-ceo-project-meta,.cb-ceo-project-goal{font-size:9px;color:var(--bt-ink-3)}.cb-ceo-project-goal{margin:5px 0}.cb-ceo-status{font-size:8px;padding:3px 6px;border-radius:999px;background:var(--bt-tag-bg)}.cb-ceo-progress{height:4px;background:var(--bt-line);border-radius:99px;overflow:hidden}.cb-ceo-progress span{display:block;height:100%;background:var(--bt-accent)}.cb-ceo-project-meta{display:flex;justify-content:space-between;margin-top:5px}.cb-ceo-org-flow{text-align:center}.cb-ceo-org-node{display:inline-flex;flex-direction:column;padding:7px 14px;border-radius:10px;border:1px solid var(--bt-line);background:var(--bt-hover)}.cb-ceo-org-node span{font-size:11px;font-weight:700}.cb-ceo-org-node small{font-size:8px;color:var(--bt-ink-3)}.cb-ceo-org-line{font-size:12px;color:var(--bt-ink-3);line-height:18px}.cb-ceo-org-departments{display:flex;gap:7px;overflow:auto;text-align:left}.cb-ceo-org-dept{min-width:112px;flex:1;padding:8px;border-radius:10px;background:var(--bt-hover);border:1px solid var(--bt-line);display:flex;flex-direction:column;gap:3px}.cb-ceo-org-dept strong{font-size:10px}.cb-ceo-org-dept span,.cb-ceo-org-dept small{font-size:8px;color:var(--bt-ink-3)}.cb-ceo-employee{display:flex;align-items:center;gap:7px;padding:6px;border-radius:9px}.cb-ceo-avatar{width:26px;height:26px;font-size:8px}.cb-ceo-employee-copy{display:flex;flex-direction:column;min-width:0;flex:1}.cb-ceo-employee-copy strong{font-size:10px}.cb-ceo-employee-copy span{font-size:8px;color:var(--bt-ink-3)}.cb-ceo-lead-badge{font-size:7px;padding:2px 5px;border-radius:999px;background:var(--bt-accent-soft);color:var(--bt-accent)}.cb-ceo-relation{display:grid;grid-template-columns:1fr auto 1fr;gap:5px;padding:6px;border-radius:8px;background:var(--bt-hover);font-size:8px}.cb-ceo-relation b{font-size:7px;color:var(--bt-accent)}.cb-ceo-next{background:var(--bt-accent-soft)}.cb-ceo-next strong{display:block;font-size:11px;margin-top:3px}.cb-ceo-next p{font-size:9px;line-height:13px;color:var(--bt-ink-2)}
+@media(max-width:1100px){.cb-ceo-main-grid{grid-template-columns:1fr}.cb-ceo-side-column{display:grid;grid-template-columns:1fr 1fr}}@media(max-width:760px){.cb-ceo-kpis{grid-template-columns:repeat(2,1fr)}.cb-ceo-flow{display:none}.cb-ceo-side-column{display:flex}}
 `;
 var PLUGIN_ID = "ds-bot";
 var ROOT_SELECTOR = /^(?:html\s+)?(?:body|:root)(?:\[[^\]]*\])*$/;
@@ -35711,17 +35713,31 @@ var SIDE_CSS = `
 // src/client/ceo-workspace.js
 var import_react53 = require("react");
 var text = (value) => typeof value === "string" ? value : value == null ? "" : String(value);
+var statusLabel = (status) => ({ active: "执行中", planning: "规划中", paused: "已暂停", done: "已完成", completed: "已完成" })[status] || text(status || "待启动");
+var initials = (name) => text(name || "?").trim().slice(0, 2);
 function CEOWorkspace({ useRoster, useSessions }) {
   const roster = useRoster((value) => value);
   const current = useSessions((list) => Object.values(list.byId ?? {}).find((session) => (session?.retainedBy?.mainView ?? 0) > 0)?.id ?? null);
   const org = roster.organization ?? {};
-  const isCeo = current === roster.mainBotId;
-  if (!isCeo) return null;
+  const mainBot = roster.byId?.[roster.mainBotId];
+  const mainPart = mainBot ? currentPart(mainBot) : roster.mainBotId;
+  if (current !== mainPart) return null;
   const employees = Array.isArray(org.employees) ? org.employees : Object.values(roster.byId ?? {}).map((bot) => ({ id: bot.id, name: bot.name, role: bot.role }));
   const departments = Array.isArray(org.departments) ? org.departments : [];
   const projects = Array.isArray(org.projects) ? org.projects : [];
-  const active = employees.filter((employee) => employee.id !== roster.mainBotId).slice(0, 6);
-  const projectCards = projects.slice(0, 3);
+  const edges = Array.isArray(org.edges) ? org.edges : [];
+  const ceo = employees.find((employee) => employee.id === roster.mainBotId);
+  const workers = employees.filter((employee) => employee.id !== roster.mainBotId);
+  const departmentMap = (0, import_react53.useMemo)(() => new Map(departments.map((department) => [department.id, department])), [departments]);
+  const stateOf2 = (project) => text(project.status || "active").toLowerCase();
+  const activeProjects = projects.filter((project) => ["active", "running", "executing"].includes(stateOf2(project))).length;
+  const completedProjects = projects.filter((project) => ["done", "completed"].includes(stateOf2(project))).length;
+  const managerEdges = edges.filter((edge) => edge.type === "manages");
+  const collaborationEdges = edges.filter((edge) => edge.type === "collaborates");
+  const leadIds = new Set(projects.map((project) => project.leadId).filter(Boolean));
+  const departmentRows = departments.slice(0, 6).map((department) => ({ ...department, members: workers.filter((employee) => employee.departmentId === department.id) }));
+  const unassigned = workers.filter((employee) => !employee.departmentId);
+  const leadName = (project) => employees.find((employee) => employee.id === project.leadId)?.name || "待分配";
   return (0, import_react53.createElement)(
     import_react53.Fragment,
     null,
@@ -35731,61 +35747,79 @@ function CEOWorkspace({ useRoster, useSessions }) {
       (0, import_react53.createElement)(
         "div",
         { className: "cb-ceo-head" },
-        (0, import_react53.createElement)(
-          "div",
-          null,
-          (0, import_react53.createElement)("div", { className: "cb-ceo-kicker" }, "COMPBOTORG · CEO WORKSPACE"),
-          (0, import_react53.createElement)("div", { className: "cb-ceo-title" }, "CEO 指挥台"),
-          (0, import_react53.createElement)("div", { className: "cb-ceo-subtitle" }, "目标 → 拆解 → 委派 → 协同 → 验收 → 汇报")
-        ),
-        (0, import_react53.createElement)(
-          "div",
-          { className: "cb-ceo-metrics" },
-          (0, import_react53.createElement)("span", null, `${employees.length} 员工`),
-          (0, import_react53.createElement)("span", null, `${departments.length} 部门`),
-          (0, import_react53.createElement)("span", null, `${projects.length} 项目`)
-        )
+        (0, import_react53.createElement)("div", { className: "cb-ceo-head-copy" }, (0, import_react53.createElement)("div", { className: "cb-ceo-kicker" }, "COMPBOTORG · CEO WORKSPACE"), (0, import_react53.createElement)("div", { className: "cb-ceo-title" }, "CEO 指挥台"), (0, import_react53.createElement)("div", { className: "cb-ceo-subtitle" }, "老板只下达目标，CEO 负责拆解、委派、协调、验收与汇报")),
+        (0, import_react53.createElement)("div", { className: "cb-ceo-flow" }, ["目标", "拆解", "委派", "协同", "验收", "汇报"].map((step, index) => (0, import_react53.createElement)(import_react53.Fragment, { key: step }, index ? (0, import_react53.createElement)("span", { className: "cb-ceo-flow-arrow" }, "→") : null, (0, import_react53.createElement)("span", { className: index === 0 ? "is-current" : "" }, step))))
       ),
       (0, import_react53.createElement)(
         "div",
-        { className: "cb-ceo-cards" },
-        (0, import_react53.createElement)(
-          "article",
-          { className: "cb-ceo-card cb-ceo-card-goal" },
-          (0, import_react53.createElement)("div", { className: "cb-ceo-card-label" }, "当前执行"),
-          (0, import_react53.createElement)("strong", null, "等待老板下达目标"),
-          (0, import_react53.createElement)("span", null, "CEO 将自动拆解任务并分派给部门负责人")
-        ),
-        ...projectCards.map((project) => (0, import_react53.createElement)(
-          "article",
-          { className: "cb-ceo-card", key: project.id ?? project.name },
-          (0, import_react53.createElement)("div", { className: "cb-ceo-card-label" }, "项目"),
-          (0, import_react53.createElement)("strong", null, text(project.name || "未命名项目")),
-          (0, import_react53.createElement)("span", null, text(project.status || "规划中"))
-        )),
-        active.length ? (0, import_react53.createElement)(
-          "article",
-          { className: "cb-ceo-card cb-ceo-card-team" },
-          (0, import_react53.createElement)("div", { className: "cb-ceo-card-label" }, "团队"),
-          (0, import_react53.createElement)("div", { className: "cb-ceo-team-list" }, active.map((employee) => (0, import_react53.createElement)("span", { key: employee.id }, employee.name)))
-        ) : null
-      )
-    ),
-    (0, import_react53.createElement)(
-      "aside",
-      { className: "cb-ceo-inspector", "aria-label": "组织信息" },
-      (0, import_react53.createElement)("div", { className: "cb-ceo-inspector-title" }, "组织概览"),
-      (0, import_react53.createElement)("div", { className: "cb-ceo-inspector-row" }, (0, import_react53.createElement)("span", null, "CEO"), (0, import_react53.createElement)("strong", null, "Main Bot")),
-      (0, import_react53.createElement)("div", { className: "cb-ceo-inspector-row" }, (0, import_react53.createElement)("span", null, "部门"), (0, import_react53.createElement)("strong", null, String(departments.length))),
-      (0, import_react53.createElement)("div", { className: "cb-ceo-inspector-row" }, (0, import_react53.createElement)("span", null, "员工"), (0, import_react53.createElement)("strong", null, String(employees.length))),
-      (0, import_react53.createElement)("div", { className: "cb-ceo-inspector-title cb-ceo-inspector-rel" }, "协作关系"),
-      (0, import_react53.createElement)("div", { className: "cb-ceo-relations" }, employees.slice(0, 5).map((employee) => (0, import_react53.createElement)(
+        { className: "cb-ceo-kpis" },
+        (0, import_react53.createElement)("div", { className: "cb-ceo-kpi cb-ceo-kpi-primary" }, (0, import_react53.createElement)("span", null, "组织成员"), (0, import_react53.createElement)("strong", null, String(employees.length)), (0, import_react53.createElement)("small", null, "CEO + 专家 Bots")),
+        (0, import_react53.createElement)("div", { className: "cb-ceo-kpi" }, (0, import_react53.createElement)("span", null, "部门"), (0, import_react53.createElement)("strong", null, String(departments.length)), (0, import_react53.createElement)("small", null, "可继续扩展层级")),
+        (0, import_react53.createElement)("div", { className: "cb-ceo-kpi" }, (0, import_react53.createElement)("span", null, "执行中项目"), (0, import_react53.createElement)("strong", null, String(activeProjects)), (0, import_react53.createElement)("small", null, completedProjects + " 个已完成")),
+        (0, import_react53.createElement)("div", { className: "cb-ceo-kpi" }, (0, import_react53.createElement)("span", null, "组织关系"), (0, import_react53.createElement)("strong", null, String(edges.length)), (0, import_react53.createElement)("small", null, collaborationEdges.length + " 个协作关系"))
+      ),
+      (0, import_react53.createElement)(
         "div",
-        { key: employee.id },
-        (0, import_react53.createElement)("span", { className: "cb-ceo-dot" }),
-        (0, import_react53.createElement)("span", null, employee.name),
-        (0, import_react53.createElement)("small", null, employee.organizationRole || employee.role || "成员")
-      )))
+        { className: "cb-ceo-main-grid" },
+        (0, import_react53.createElement)(
+          "div",
+          { className: "cb-ceo-primary-column" },
+          (0, import_react53.createElement)(
+            "section",
+            { className: "cb-ceo-panel cb-ceo-command" },
+            (0, import_react53.createElement)("div", { className: "cb-ceo-panel-head" }, (0, import_react53.createElement)("div", null, (0, import_react53.createElement)("div", { className: "cb-ceo-panel-kicker" }, "COMMAND CENTER"), (0, import_react53.createElement)("h3", null, "当前指挥状态")), (0, import_react53.createElement)("span", { className: "cb-ceo-live" }, "● LIVE")),
+            (0, import_react53.createElement)("div", { className: "cb-ceo-command-body" }, (0, import_react53.createElement)("div", { className: "cb-ceo-command-icon" }, "⌁"), (0, import_react53.createElement)("div", null, (0, import_react53.createElement)("strong", null, projects.length ? "CEO 正在等待新的优先级" : "等待老板下达第一个目标"), (0, import_react53.createElement)("p", null, projects.length ? "目标进入后，CEO 会把工作拆成项目与任务，再沿组织关系委派给负责人。" : "直接在 CEO 聊天中告诉我“要做什么”。不需要你手动创建任务或逐个安排员工。")))
+          ),
+          (0, import_react53.createElement)(
+            "section",
+            { className: "cb-ceo-panel" },
+            (0, import_react53.createElement)("div", { className: "cb-ceo-panel-head" }, (0, import_react53.createElement)("div", null, (0, import_react53.createElement)("div", { className: "cb-ceo-panel-kicker" }, "PROJECTS"), (0, import_react53.createElement)("h3", null, "项目与执行流")), (0, import_react53.createElement)("span", { className: "cb-ceo-panel-count" }, projects.length + " 项")),
+            projects.length ? (0, import_react53.createElement)("div", { className: "cb-ceo-project-list" }, projects.slice(0, 8).map((project) => (0, import_react53.createElement)(
+              "article",
+              { className: "cb-ceo-project", key: project.id || project.name },
+              (0, import_react53.createElement)("div", { className: "cb-ceo-project-top" }, (0, import_react53.createElement)("div", { className: "cb-ceo-project-mark" }, initials(project.name)), (0, import_react53.createElement)("div", { className: "cb-ceo-project-title" }, (0, import_react53.createElement)("strong", null, text(project.name || "未命名项目")), (0, import_react53.createElement)("span", null, leadName(project))), (0, import_react53.createElement)("span", { className: "cb-ceo-status cb-ceo-status-" + stateOf2(project) }, statusLabel(stateOf2(project)))),
+              project.goal ? (0, import_react53.createElement)("p", { className: "cb-ceo-project-goal" }, text(project.goal)) : null,
+              (0, import_react53.createElement)("div", { className: "cb-ceo-progress" }, (0, import_react53.createElement)("span", { style: { width: ["done", "completed"].includes(stateOf2(project)) ? "100%" : ["active", "running", "executing"].includes(stateOf2(project)) ? "58%" : "18%" } })),
+              (0, import_react53.createElement)("div", { className: "cb-ceo-project-meta" }, (0, import_react53.createElement)("span", null, "负责人 · " + leadName(project)), (0, import_react53.createElement)("span", null, departmentMap.get(employees.find((employee) => employee.id === project.leadId)?.departmentId)?.name || "跨部门"))
+            ))) : (0, import_react53.createElement)("div", { className: "cb-ceo-empty" }, "还没有项目。老板的下一条目标会从这里开始形成执行流。")
+          ),
+          (0, import_react53.createElement)(
+            "section",
+            { className: "cb-ceo-panel" },
+            (0, import_react53.createElement)("div", { className: "cb-ceo-panel-head" }, (0, import_react53.createElement)("div", null, (0, import_react53.createElement)("div", { className: "cb-ceo-panel-kicker" }, "ORGANIZATION"), (0, import_react53.createElement)("h3", null, "组织链路")), (0, import_react53.createElement)("span", { className: "cb-ceo-panel-count" }, managerEdges.length + " 管理关系")),
+            (0, import_react53.createElement)(
+              "div",
+              { className: "cb-ceo-org-flow" },
+              (0, import_react53.createElement)("div", { className: "cb-ceo-org-node cb-ceo-org-owner" }, (0, import_react53.createElement)("span", null, "老板"), (0, import_react53.createElement)("small", null, "Owner")),
+              (0, import_react53.createElement)("div", { className: "cb-ceo-org-line" }, "↓"),
+              (0, import_react53.createElement)("div", { className: "cb-ceo-org-node cb-ceo-org-ceo" }, (0, import_react53.createElement)("span", null, ceo?.name || "Main Bot"), (0, import_react53.createElement)("small", null, "CEO")),
+              (0, import_react53.createElement)("div", { className: "cb-ceo-org-line" }, "↓"),
+              (0, import_react53.createElement)("div", { className: "cb-ceo-org-departments" }, departmentRows.map((department) => (0, import_react53.createElement)("div", { className: "cb-ceo-org-dept", key: department.id }, (0, import_react53.createElement)("strong", null, department.name), (0, import_react53.createElement)("span", null, department.members.length + " 人"), department.members.slice(0, 3).map((member) => (0, import_react53.createElement)("small", { key: member.id }, member.name)))), unassigned.length ? (0, import_react53.createElement)("div", { className: "cb-ceo-org-dept cb-ceo-org-unassigned", key: "unassigned" }, (0, import_react53.createElement)("strong", null, "未分配"), (0, import_react53.createElement)("span", null, unassigned.length + " 人")) : null)
+            )
+          )
+        ),
+        (0, import_react53.createElement)(
+          "aside",
+          { className: "cb-ceo-side-column" },
+          (0, import_react53.createElement)(
+            "section",
+            { className: "cb-ceo-panel cb-ceo-team-panel" },
+            (0, import_react53.createElement)("div", { className: "cb-ceo-panel-head" }, (0, import_react53.createElement)("div", null, (0, import_react53.createElement)("div", { className: "cb-ceo-panel-kicker" }, "TEAM"), (0, import_react53.createElement)("h3", null, "员工与负责人")), (0, import_react53.createElement)("span", { className: "cb-ceo-panel-count" }, workers.length + " 人")),
+            (0, import_react53.createElement)("div", { className: "cb-ceo-employee-list" }, workers.slice(0, 10).map((employee) => (0, import_react53.createElement)("div", { className: "cb-ceo-employee", key: employee.id }, (0, import_react53.createElement)("div", { className: "cb-ceo-avatar" }, initials(employee.name)), (0, import_react53.createElement)("div", { className: "cb-ceo-employee-copy" }, (0, import_react53.createElement)("strong", null, employee.name), (0, import_react53.createElement)("span", null, employee.organizationRole || employee.role || "专家")), leadIds.has(employee.id) ? (0, import_react53.createElement)("span", { className: "cb-ceo-lead-badge" }, "Lead") : null)), workers.length > 10 ? (0, import_react53.createElement)("div", { className: "cb-ceo-more" }, "+" + (workers.length - 10) + " 名员工") : null)
+          ),
+          (0, import_react53.createElement)(
+            "section",
+            { className: "cb-ceo-panel" },
+            (0, import_react53.createElement)("div", { className: "cb-ceo-panel-head" }, (0, import_react53.createElement)("div", null, (0, import_react53.createElement)("div", { className: "cb-ceo-panel-kicker" }, "RELATIONS"), (0, import_react53.createElement)("h3", null, "协作网络")), (0, import_react53.createElement)("span", { className: "cb-ceo-panel-count" }, edges.length + " 条")),
+            (0, import_react53.createElement)("div", { className: "cb-ceo-relations" }, edges.slice(0, 8).map((edge) => {
+              const from = employees.find((employee) => employee.id === edge.from)?.name || (edge.from === "owner" ? "老板" : edge.from);
+              const to = employees.find((employee) => employee.id === edge.to)?.name || edge.to;
+              return (0, import_react53.createElement)("div", { className: "cb-ceo-relation", key: edge.id || edge.from + "-" + edge.to + "-" + edge.type }, (0, import_react53.createElement)("span", null, from), (0, import_react53.createElement)("b", null, edge.type), (0, import_react53.createElement)("span", null, to));
+            }), edges.length === 0 ? (0, import_react53.createElement)("div", { className: "cb-ceo-empty" }, "组织关系会随着 CEO 委派和协作自动形成。") : null)
+          ),
+          (0, import_react53.createElement)("section", { className: "cb-ceo-panel cb-ceo-next" }, (0, import_react53.createElement)("div", { className: "cb-ceo-panel-kicker" }, "NEXT"), (0, import_react53.createElement)("strong", null, "老板下一步只需要说目标"), (0, import_react53.createElement)("p", null, "例如：“做一个面向开发者的 AI 产品。” CEO 会负责把它变成可执行的组织任务。"))
+        )
+      )
     )
   );
 }
