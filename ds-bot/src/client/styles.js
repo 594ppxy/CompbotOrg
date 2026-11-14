@@ -1060,7 +1060,7 @@ body[data-ds-dark-theme] .bt-theme-chip i{background:var(--da)}
 @media (max-width:640px) and (pointer:coarse){
   .bt-input,.bt-bs-input,.bt-browser-address input,.bt-folder-input,.bt-secret-input,.bt-q-input,.bt-to input,.bt-palette-head input,.bt-mem-input{font-size:16px}
 }
-`
+.cb-org-summary{display:flex;align-items:center;justify-content:space-between;margin:6px 8px 4px;padding:7px 9px;border:1px solid var(--bt-line);border-radius:10px;background:color-mix(in srgb,var(--bt-accent) 5%,var(--bt-card))}.cb-org-title{font-size:11px;font-weight:700;letter-spacing:.03em;color:var(--bt-ink)}.cb-org-count{font-size:10px;color:var(--bt-ink-3)}.cb-org-departments{margin:2px 0 6px}.cb-department{margin:4px 0 8px}.cb-department-head{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;color:var(--bt-ink-2);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}.cb-department-head span:last-child{min-width:18px;text-align:center;padding:1px 5px;border-radius:99px;background:var(--bt-tag-bg);font-size:9px}`
 
 export const CONVERSATION_CSS = `
 .bt-think{font-size:13px;line-height:18px;color:var(--bt-ink-2);margin:2px 0 4px;max-width:calc(var(--bt-msg-w) * 100%)}

@@ -15865,7 +15865,7 @@ body[data-ds-dark-theme] .bt-theme-chip i{background:var(--da)}
 @media (max-width:640px) and (pointer:coarse){
   .bt-input,.bt-bs-input,.bt-browser-address input,.bt-folder-input,.bt-secret-input,.bt-q-input,.bt-to input,.bt-palette-head input,.bt-mem-input{font-size:16px}
 }
-`;
+.cb-org-summary{display:flex;align-items:center;justify-content:space-between;margin:6px 8px 4px;padding:7px 9px;border:1px solid var(--bt-line);border-radius:10px;background:color-mix(in srgb,var(--bt-accent) 5%,var(--bt-card))}.cb-org-title{font-size:11px;font-weight:700;letter-spacing:.03em;color:var(--bt-ink)}.cb-org-count{font-size:10px;color:var(--bt-ink-3)}.cb-org-departments{margin:2px 0 6px}.cb-department{margin:4px 0 8px}.cb-department-head{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;color:var(--bt-ink-2);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}.cb-department-head span:last-child{min-width:18px;text-align:center;padding:1px 5px;border-radius:99px;background:var(--bt-tag-bg);font-size:9px}`;
 var CONVERSATION_CSS = `
 .bt-think{font-size:13px;line-height:18px;color:var(--bt-ink-2);margin:2px 0 4px;max-width:calc(var(--bt-msg-w) * 100%)}
 body[data-bt-layout=flat] .bt-think{max-width:calc(var(--bt-flat-w) * 100%)}
@@ -27697,6 +27697,13 @@ function TeamSidebar(props) {
     [order, sectionSet]
   );
   const main = roster.byId[roster.mainBotId];
+  const org = roster.organization ?? { departments: [], employees: [], projects: [], edges: [] };
+  const departments = org.departments ?? [];
+  const employeeById = Object.fromEntries((org.employees ?? []).map((employee) => [employee.id, employee]));
+  const departmentRows = departments.map((department) => ({
+    department,
+    employees: (roster.bots ?? []).filter((bot) => (employeeById[bot.id]?.departmentId ?? bot.departmentId) === department.id && bot.id !== roster.mainBotId)
+  })).filter((row) => row.employees.length > 0);
   const glideKey = (0, import_react34.useMemo)(
     () => `${sections.map((s) => `${s.id}:${s.collapsed ? 1 : 0}`).join(",")}|${order.map((entry) => `${entry.item.id}:${entry.item.sectionId ?? ""}`).join(",")}`,
     [sections, order]
@@ -27976,6 +27983,12 @@ function TeamSidebar(props) {
         }
       },
       wideContent ? main ? (0, import_react34.createElement)(BotRow, { ...rowProps, bot: main, marked: markedUnread[main.id] === true }) : roster.ready ? null : (0, import_react34.createElement)("div", { className: "bt-hint" }, bootFailed ? bootHint() : t("Setting up your Main Bot…")) : null,
+      wideContent && departmentRows.length > 0 ? (0, import_react34.createElement)("div", { className: "cb-org-departments" }, departmentRows.map(({ department, employees }) => (0, import_react34.createElement)(
+        "div",
+        { key: department.id, className: "cb-department" },
+        (0, import_react34.createElement)("div", { className: "cb-department-head" }, (0, import_react34.createElement)("span", null, department.name), (0, import_react34.createElement)("span", null, String(employees.length))),
+        employees.map((bot) => (0, import_react34.createElement)(BotRow, { ...rowProps, key: bot.id, bot, marked: markedUnread[bot.id] === true }))
+      ))) : null,
       sections.length > 0 && wideContent ? (0, import_react34.createElement)("div", {
         className: "bt-sec-ungrouped",
         "data-dragging": dragId ? "true" : void 0,
@@ -40823,7 +40836,7 @@ function apply(ctx) {
   } catch {
     savedPrefs = {};
   }
-  const roster = createSource({ ...EMPTY_ROSTER, prefs: savedPrefs });
+  const roster = createSource({ ...EMPTY_ROSTER, prefs: savedPrefs, organization: { departments: [], employees: [], projects: [], edges: [] } });
   const unreadStore = sharedMap(STORAGE.unread);
   const reactionStore = sharedMap(STORAGE.reactions);
   const seenStore = sharedMap(STORAGE.seen);

@@ -68,7 +68,7 @@ export function apply(ctx) {
   const PREFS_KEY = STORAGE.prefs
   let savedPrefs = {}
   try { savedPrefs = JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') ?? {} } catch { savedPrefs = {} }
-  const roster = createSource({ ...EMPTY_ROSTER, prefs: savedPrefs })
+  const roster = createSource({ ...EMPTY_ROSTER, prefs: savedPrefs, organization: { departments: [], employees: [], projects: [], edges: [] } })
   const unreadStore = sharedMap(STORAGE.unread)
   const reactionStore = sharedMap(STORAGE.reactions)
   // When each conversation was last left; a visit compares new turns against it.
@@ -178,6 +178,8 @@ export function apply(ctx) {
   let pulls = 0
   let applied = 0
   const pull = async () => {
+    // CompBotOrg organization data is additive; DSH roster remains authoritative for Bot execution.
+
     const order = ++pulls
     const known = roster.getSnapshot()
     const value = await call('state', { since: known.revision, models: known.modelsKey ?? '', live: liveKey, locale: language() })
@@ -213,7 +215,7 @@ export function apply(ctx) {
     if (value.unchanged || (value.revision === current.revision && value.modelsKey === current.modelsKey)) return
     // On a browser with no visit record yet, everything already there counts as seen.
     if (Object.keys(seenAt).length === 0) leaveVisits([...value.bots, ...value.rooms].map(entry => entry.id))
-    roster.set(indexRoster(value))
+    roster.set({ ...indexRoster(value), organization: value.organization ?? current.organization ?? { departments: [], employees: [], projects: [], edges: [] } })
     try {
       const ids = (value.agents ?? []).flatMap(agent => agent.sessions ?? [])
       localStorage.setItem(STORAGE.agentSessions, JSON.stringify(ids))

@@ -32,7 +32,7 @@ export function organizationView(state) {
     projects: org.projects.map(p => ({ ...p })),
     employees: Object.values(state.bots ?? {}).map(bot => ({
       id: bot.id, name: bot.name, role: bot.role ?? '', main: state.mainBotIds?.includes(bot.id) === true,
-      sectionId: bot.sectionId ?? null, model: bot.model ?? bot.appliedModel ?? null,
+      sectionId: bot.sectionId ?? null, departmentId: bot.departmentId ?? null, organizationRole: bot.organizationRole ?? bot.role ?? '', model: bot.model ?? bot.appliedModel ?? null,
     })),
   }
 }
